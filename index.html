@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap"
         rel="stylesheet">
-  <link rel="stylesheet" href="./dashboard.css?v=20260721-connect21">
+  <link rel="stylesheet" href="./dashboard.css?v=20260721-connect22">
 </head>
 
 <body>
@@ -559,14 +559,21 @@
                 Setelah login, buka endpoint resmi berikut dan
                 salin seluruh respons yang terlihat.
               </p>
-              <a
-                class="connect-external-link"
-                href="https://web-api.gryphline.com/cookie_store/account_token"
-                target="_blank"
-                rel="noopener noreferrer">
-                Buka API account_token
+              <button
+                id="openAccountTokenApi"
+                class="connect-external-link connect-api-button"
+                type="button">
+                Buka API & Salin Otomatis
                 <span aria-hidden="true">↗</span>
-              </a>
+              </button>
+
+              <div
+                id="accountTokenFetchStatus"
+                class="connect-auto-copy-status"
+                aria-live="polite">
+                Saat diklik, dashboard akan mencoba menyalin
+                respons API dan mengisi kolom secara otomatis.
+              </div>
             </div>
           </li>
 
@@ -594,6 +601,15 @@
                 spellcheck="false"
                 autocomplete="off"
                 placeholder='Contoh: {"data":{"content":"TOKEN..."}}'></textarea>
+
+              <div class="connect-token-tools">
+                <button
+                  id="pasteAccountTokenClipboard"
+                  class="connect-clipboard-button"
+                  type="button">
+                  Tempel dari Clipboard
+                </button>
+              </div>
 
               <div
                 id="connectTokenStatus"
@@ -637,6 +653,99 @@
               </svg>
             </span>
             <span>Tautkan Akun</span>
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Delete linked account overlay -->
+  <div
+    id="deleteAccountOverlay"
+    class="delete-account-overlay"
+    hidden>
+    <section
+      class="delete-account-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="deleteAccountTitle">
+
+      <header class="delete-account-header">
+        <div>
+          <span class="delete-account-kicker">
+            ACCOUNT TERMINATION
+          </span>
+          <h2 id="deleteAccountTitle">
+            Delete Account
+          </h2>
+        </div>
+
+        <button
+          id="closeDeleteAccount"
+          class="connect-account-close"
+          type="button"
+          aria-label="Tutup">
+          ×
+        </button>
+      </header>
+
+      <div class="delete-account-body">
+        <div class="delete-account-warning">
+          <span class="delete-warning-icon">!</span>
+          <div>
+            <strong>
+              Hapus akun tertaut dari dashboard?
+            </strong>
+            <p>
+              Akun tidak akan dihapus dari Gryphline.
+              Token hanya dihapus dari Google Apps Script,
+              lalu akun berhenti disinkronkan dan di-check-in.
+            </p>
+          </div>
+        </div>
+
+        <div class="delete-account-target">
+          <span>Account</span>
+          <strong id="deleteAccountName">—</strong>
+          <small id="deleteAccountUid">UID —</small>
+        </div>
+
+        <label
+          for="deleteAccountPin"
+          class="connect-input-label">
+          Verification PIN
+        </label>
+
+        <input
+          id="deleteAccountPin"
+          class="delete-account-pin"
+          type="password"
+          inputmode="numeric"
+          maxlength="6"
+          autocomplete="one-time-code"
+          placeholder="Masukkan PIN 6 digit">
+
+        <div
+          id="deleteAccountMessage"
+          class="delete-account-message"
+          aria-live="polite">
+          Gunakan PIN yang sama dengan login dashboard.
+        </div>
+
+        <div class="delete-account-actions">
+          <button
+            id="cancelDeleteAccount"
+            class="connect-secondary-button"
+            type="button">
+            Batal
+          </button>
+
+          <button
+            id="confirmDeleteAccount"
+            class="delete-account-confirm"
+            type="button"
+            disabled>
+            Hapus Akun
           </button>
         </div>
       </div>
@@ -723,7 +832,7 @@
     </form>
   </div>
 
-  <script src="./config.js?v=20260721-connect21"></script>
-  <script src="./dashboard.js?v=20260721-connect21"></script>
+  <script src="./config.js?v=20260721-connect22"></script>
+  <script src="./dashboard.js?v=20260721-connect22"></script>
 </body>
 </html>

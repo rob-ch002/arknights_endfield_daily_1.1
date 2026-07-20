@@ -21,6 +21,8 @@ const NOTIFICATION_CONDITION_KEY =
 const MAX_NOTIFICATION_HISTORY = 60;
 const DEVICE_NOTIFICATION_ICON =
   "https://raw.githubusercontent.com/Yue-plus/endfield_icons/main/svg/endfield-industries.svg";
+const ACCOUNT_TOKEN_API_URL =
+  "https://web-api.gryphline.com/cookie_store/account_token";
 
 const FALLBACK_ACCOUNTS = [
   { slug: "muzaka" },
@@ -47,7 +49,10 @@ const state = {
   avatarManifestTimer: null,
   notifications: [],
   notificationConditions: {},
-  notificationPanelOpen: false
+  notificationPanelOpen: false,
+  accountTokenApiOpened: false,
+  pendingDeleteSlug: null,
+  deletingAccount: false
 };
 
 const operationProgressState = {
@@ -428,6 +433,12 @@ $("#logoutButton").addEventListener("click", () => {
     "STATUS: SESSION CLOSED";
 });
 
+function isLinkedAccountSlug(slug) {
+  return !FALLBACK_ACCOUNTS.some(
+    account => account.slug === slug
+  );
+}
+
 function renderAccountList() {
   const accounts = allAccountEntries();
 
@@ -435,37 +446,63 @@ function renderAccountList() {
     accounts.map(account => {
       const profile = account.profile || {};
       const level = formatNumber(profile.level);
+      const linked =
+        isLinkedAccountSlug(account.slug);
 
       return `
-        <button
-          class="account-mini ${
-            account.slug === state.selectedSlug
-              ? "active"
+        <div class="account-mini-row">
+          <button
+            class="account-mini account-mini-select ${
+              account.slug === state.selectedSlug
+                ? "active"
+                : ""
+            }"
+            type="button"
+            data-account="${escapeHtml(account.slug)}">
+            <span class="account-mini-name">
+              ${escapeHtml(
+                profile.name ||
+                "—"
+              )}
+            </span>
+            <span class="account-mini-meta">
+              UID ${escapeHtml(
+                profile.uid ||
+                "—"
+              )}<br>
+              ${escapeHtml(
+                account.server_name || "—"
+              )}
+              • Lv.${escapeHtml(level)}
+            </span>
+          </button>
+
+          ${
+            linked
+              ? `
+                <button
+                  class="account-delete-trigger"
+                  type="button"
+                  data-delete-account="${escapeHtml(account.slug)}"
+                  aria-label="Hapus akun ${escapeHtml(
+                    profile.name || account.slug
+                  )}"
+                  title="Hapus akun tertaut">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 7h16"></path>
+                    <path d="M9 7V4h6v3"></path>
+                    <path d="M7 7l1 13h8l1-13"></path>
+                    <path d="M10 11v5M14 11v5"></path>
+                  </svg>
+                </button>
+              `
               : ""
-          }"
-          type="button"
-          data-account="${escapeHtml(account.slug)}">
-          <span class="account-mini-name">
-            ${escapeHtml(
-              profile.name ||
-              "—"
-            )}
-          </span>
-          <span class="account-mini-meta">
-            UID ${escapeHtml(
-              profile.uid ||
-              "—"
-            )}<br>
-            ${escapeHtml(
-              account.server_name || "—"
-            )}
-            • Lv.${escapeHtml(level)}
-          </span>
-        </button>
+          }
+        </div>
       `;
     }).join("");
 
-  $$(".account-mini").forEach(button => {
+  $$(".account-mini-select").forEach(button => {
     button.addEventListener("click", () => {
       state.selectedSlug = button.dataset.account;
 
@@ -477,6 +514,16 @@ function renderAccountList() {
       renderAccountList();
       renderSelectedAccount();
       closeSidebar();
+    });
+  });
+
+  $$("[data-delete-account]").forEach(button => {
+    button.addEventListener("click", event => {
+      event.stopPropagation();
+
+      openDeleteAccountModal(
+        button.dataset.deleteAccount
+      );
     });
   });
 }
@@ -3007,6 +3054,14 @@ function resetConnectAccountForm() {
 
   $("#connectAccountSubmit").disabled =
     true;
+
+  state.accountTokenApiOpened =
+    false;
+
+  setAutoCopyStatus(
+    "",
+    "Saat diklik, dashboard akan mencoba menyalin respons API dan mengisi kolom secara otomatis."
+  );
 }
 
 function setConnectAccountOpen(open) {
@@ -3138,7 +3193,538 @@ async function linkConnectedAccount() {
   }
 }
 
+async function writeClipboardText(text) {
+  if (
+    navigator.clipboard &&
+    window.isSecureContext
+  ) {
+    await navigator.clipboard.writeText(text);
+    return true;
+  }
+
+  const temporary =
+    document.createElement("textarea");
+
+  temporary.value = text;
+  temporary.setAttribute(
+    "readonly",
+    ""
+  );
+
+  temporary.style.position =
+    "fixed";
+
+  temporary.style.opacity =
+    "0";
+
+  temporary.style.pointerEvents =
+    "none";
+
+  document.body.appendChild(
+    temporary
+  );
+
+  temporary.select();
+
+  const copied =
+    document.execCommand("copy");
+
+  temporary.remove();
+
+  return copied;
+}
+
+function setAutoCopyStatus(
+  type,
+  message
+) {
+  const status =
+    $("#accountTokenFetchStatus");
+
+  status.className =
+    "connect-auto-copy-status" +
+    (
+      type
+        ? ` ${type}`
+        : ""
+    );
+
+  status.textContent =
+    message;
+}
+
+function useAccountTokenResponse(
+  responseText,
+  {
+    copied = false,
+    source = "API"
+  } = {}
+) {
+  const token =
+    extractAccountToken(
+      responseText
+    );
+
+  if (!token) {
+    throw new Error(
+      "Respons tidak memiliki account_token yang valid."
+    );
+  }
+
+  const textarea =
+    $("#accountTokenResponse");
+
+  textarea.value =
+    responseText;
+
+  updateConnectAccountState();
+
+  setAutoCopyStatus(
+    "success",
+    copied
+      ? `${source}: respons otomatis disalin dan kolom sudah diisi.`
+      : `${source}: respons ditemukan dan kolom sudah diisi.`
+  );
+
+  return token;
+}
+
+async function fetchAndCopyAccountToken() {
+  state.accountTokenApiOpened =
+    true;
+
+  /*
+   * Tab resmi dibuka langsung agar tidak diblokir popup.
+   * Dashboard lalu mencoba request otomatis di belakang layar.
+   */
+  window.open(
+    ACCOUNT_TOKEN_API_URL,
+    "_blank",
+    "noopener,noreferrer"
+  );
+
+  setAutoCopyStatus(
+    "loading",
+    "Membuka API resmi dan mencoba membaca respons..."
+  );
+
+  const controller =
+    new AbortController();
+
+  const timeout =
+    setTimeout(
+      () => controller.abort(),
+      10000
+    );
+
+  try {
+    const response =
+      await fetch(
+        ACCOUNT_TOKEN_API_URL,
+        {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+          headers: {
+            "Accept":
+              "application/json, text/plain, */*"
+          },
+          signal: controller.signal
+        }
+      );
+
+    const responseText =
+      await response.text();
+
+    if (!response.ok) {
+      throw new Error(
+        `API HTTP ${response.status}`
+      );
+    }
+
+    useAccountTokenResponse(
+      responseText,
+      {
+        copied: false,
+        source: "API resmi"
+      }
+    );
+
+    let copied = false;
+
+    try {
+      copied =
+        await writeClipboardText(
+          responseText
+        );
+    } catch (_) {
+      copied = false;
+    }
+
+    setAutoCopyStatus(
+      "success",
+      copied
+        ? "Respons API otomatis disalin dan kolom sudah diisi."
+        : "Kolom sudah terisi otomatis. Browser tidak mengizinkan penyalinan clipboard."
+    );
+  } catch (error) {
+    setAutoCopyStatus(
+      "warning",
+      "Tab API sudah dibuka. Browser memblokir pembacaan otomatis lintas domain; salin respons di tab tersebut lalu kembali. Dashboard akan mencoba menempelkannya."
+    );
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function pasteAccountTokenFromClipboard({
+  silent = false
+} = {}) {
+  if (
+    !navigator.clipboard ||
+    !window.isSecureContext
+  ) {
+    if (!silent) {
+      setAutoCopyStatus(
+        "warning",
+        "Browser tidak menyediakan akses clipboard otomatis. Tempel respons secara manual."
+      );
+    }
+
+    return false;
+  }
+
+  try {
+    const clipboardText =
+      await navigator.clipboard.readText();
+
+    if (!clipboardText.trim()) {
+      throw new Error(
+        "Clipboard kosong."
+      );
+    }
+
+    useAccountTokenResponse(
+      clipboardText,
+      {
+        copied: true,
+        source: "Clipboard"
+      }
+    );
+
+    return true;
+  } catch (error) {
+    if (!silent) {
+      setAutoCopyStatus(
+        "warning",
+        error?.message === "Clipboard kosong."
+          ? "Clipboard masih kosong."
+          : "Izin membaca clipboard ditolak. Gunakan Ctrl+V atau tekan lama lalu Paste."
+      );
+    }
+
+    return false;
+  }
+}
+
+function accountBySlug(slug) {
+  return allAccountEntries().find(
+    account => account.slug === slug
+  ) || null;
+}
+
+function setDeleteAccountOpen(open) {
+  const overlay =
+    $("#deleteAccountOverlay");
+
+  overlay.hidden =
+    !open;
+
+  document.body.classList.toggle(
+    "delete-account-open",
+    open
+  );
+
+  if (!open) {
+    state.pendingDeleteSlug =
+      null;
+
+    $("#deleteAccountPin").value =
+      "";
+
+    $("#deleteAccountMessage").className =
+      "delete-account-message";
+
+    $("#deleteAccountMessage").textContent =
+      "Gunakan PIN yang sama dengan login dashboard.";
+
+    $("#confirmDeleteAccount").disabled =
+      true;
+  }
+}
+
+function openDeleteAccountModal(slug) {
+  const account =
+    accountBySlug(slug);
+
+  if (
+    !account ||
+    !isLinkedAccountSlug(slug)
+  ) {
+    showToast({
+      type: "warning",
+      title: "Akun tidak dapat dihapus",
+      message:
+        "Hanya akun yang ditambahkan melalui Connect Account yang dapat dihapus dari menu ini."
+    });
+    return;
+  }
+
+  state.pendingDeleteSlug =
+    slug;
+
+  const profile =
+    account.profile || {};
+
+  $("#deleteAccountName").textContent =
+    profile.name ||
+    account.display_name ||
+    slug;
+
+  $("#deleteAccountUid").textContent =
+    `UID ${profile.uid || account.uid || "—"}`;
+
+  setDeleteAccountOpen(true);
+
+  setTimeout(() => {
+    $("#deleteAccountPin").focus();
+  }, 80);
+}
+
+async function deleteLinkedAccount() {
+  if (state.deletingAccount) {
+    return;
+  }
+
+  const slug =
+    state.pendingDeleteSlug;
+
+  const pin =
+    $("#deleteAccountPin").value.trim();
+
+  const message =
+    $("#deleteAccountMessage");
+
+  const confirm =
+    $("#confirmDeleteAccount");
+
+  if (!slug) {
+    return;
+  }
+
+  if (!/^\d{6}$/.test(pin)) {
+    message.className =
+      "delete-account-message error";
+
+    message.textContent =
+      "PIN wajib terdiri dari 6 digit.";
+
+    return;
+  }
+
+  state.deletingAccount =
+    true;
+
+  confirm.disabled =
+    true;
+
+  confirm.textContent =
+    "Menghapus...";
+
+  message.className =
+    "delete-account-message";
+
+  message.textContent =
+    "Memverifikasi PIN dan menghapus token akun...";
+
+  try {
+    const response =
+      await gasRequest(
+        "deleteAccount",
+        {
+          slug,
+          pin
+        }
+      );
+
+    if (
+      !response ||
+      response.success !== true ||
+      !response.state?.accounts
+    ) {
+      throw new Error(
+        response?.message ||
+        "Akun gagal dihapus."
+      );
+    }
+
+    const remainingSlugs =
+      Object.keys(
+        response.state.accounts
+      );
+
+    if (
+      state.selectedSlug === slug ||
+      !remainingSlugs.includes(
+        state.selectedSlug
+      )
+    ) {
+      state.selectedSlug =
+        remainingSlugs[0] ||
+        FALLBACK_ACCOUNTS[0].slug;
+
+      localStorage.setItem(
+        SELECTED_ACCOUNT_KEY,
+        state.selectedSlug
+      );
+    }
+
+    applyDashboardState(
+      response.state,
+      "manual"
+    );
+
+    setDeleteAccountOpen(false);
+
+    showToast({
+      type: "success",
+      title: "Akun berhasil dihapus",
+      message:
+        `${response.deletedAccount?.name || "Akun"} ` +
+        "telah dihapus dari dashboard.",
+      duration: 5200
+    });
+  } catch (error) {
+    message.className =
+      "delete-account-message error";
+
+    message.textContent =
+      error?.message ||
+      "PIN salah atau akun gagal dihapus.";
+
+    showToast({
+      type: "error",
+      title: "Gagal menghapus akun",
+      message:
+        error?.message ||
+        "PIN salah atau akun gagal dihapus.",
+      duration: 6500
+    });
+  } finally {
+    state.deletingAccount =
+      false;
+
+    confirm.textContent =
+      "Hapus Akun";
+
+    confirm.disabled =
+      !/^\d{6}$/.test(
+        $("#deleteAccountPin").value
+      );
+  }
+}
+
+function bindDeleteAccount() {
+  $("#deleteAccountPin")
+    .addEventListener(
+      "input",
+      event => {
+        event.target.value =
+          event.target.value
+            .replace(/\D/g, "")
+            .slice(0, 6);
+
+        $("#confirmDeleteAccount").disabled =
+          event.target.value.length !== 6 ||
+          state.deletingAccount;
+
+        $("#deleteAccountMessage").className =
+          "delete-account-message";
+
+        $("#deleteAccountMessage").textContent =
+          event.target.value.length === 6
+            ? "PIN siap diverifikasi."
+            : "Gunakan PIN yang sama dengan login dashboard.";
+      }
+    );
+
+  $("#confirmDeleteAccount")
+    .addEventListener(
+      "click",
+      deleteLinkedAccount
+    );
+
+  $("#closeDeleteAccount")
+    .addEventListener(
+      "click",
+      () => setDeleteAccountOpen(false)
+    );
+
+  $("#cancelDeleteAccount")
+    .addEventListener(
+      "click",
+      () => setDeleteAccountOpen(false)
+    );
+
+  $("#deleteAccountOverlay")
+    .addEventListener(
+      "click",
+      event => {
+        if (
+          event.target ===
+          $("#deleteAccountOverlay")
+        ) {
+          setDeleteAccountOpen(false);
+        }
+      }
+    );
+}
+
 function bindConnectAccount() {
+  $("#openAccountTokenApi")
+    .addEventListener(
+      "click",
+      fetchAndCopyAccountToken
+    );
+
+  $("#pasteAccountTokenClipboard")
+    .addEventListener(
+      "click",
+      () => {
+        pasteAccountTokenFromClipboard({
+          silent: false
+        });
+      }
+    );
+
+  window.addEventListener(
+    "focus",
+    () => {
+      if (
+        state.accountTokenApiOpened &&
+        !extractAccountToken(
+          $("#accountTokenResponse").value
+        )
+      ) {
+        setTimeout(() => {
+          pasteAccountTokenFromClipboard({
+            silent: true
+          });
+        }, 250);
+      }
+    }
+  );
+
   $("#connectAccountButton")
     .addEventListener(
       "click",
@@ -3197,10 +3783,16 @@ function bindConnectAccount() {
   document.addEventListener(
     "keydown",
     event => {
-      if (
-        event.key === "Escape" &&
-        !$("#connectAccountOverlay").hidden
-      ) {
+      if (event.key !== "Escape") {
+        return;
+      }
+
+      if (!$("#deleteAccountOverlay").hidden) {
+        setDeleteAccountOpen(false);
+        return;
+      }
+
+      if (!$("#connectAccountOverlay").hidden) {
         setConnectAccountOpen(false);
       }
     }
@@ -3211,6 +3803,7 @@ async function initialize() {
   loadNotificationStorage();
   bindNotificationCenter();
   bindConnectAccount();
+  bindDeleteAccount();
   renderNotificationCenter();
 
   await loadAvatarManifest();

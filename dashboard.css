@@ -3272,3 +3272,327 @@ body.connect-account-open {
     order: 2;
   }
 }
+
+
+/* ==========================================================
+   V22 — AUTO TOKEN COPY + DELETE ACCOUNT WITH PIN
+   ========================================================== */
+
+.connect-api-button {
+  appearance: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.connect-auto-copy-status {
+  margin-top: 8px;
+  padding: 8px 9px;
+  border-left: 2px solid #343a41;
+  background: rgba(255, 255, 255, 0.018);
+  color: #777f88;
+  font-size: 8px;
+  line-height: 1.55;
+}
+
+.connect-auto-copy-status.loading {
+  border-left-color: #00c7dd;
+  color: #78eafa;
+}
+
+.connect-auto-copy-status.success {
+  border-left-color: #35e58b;
+  color: #79efa9;
+}
+
+.connect-auto-copy-status.warning {
+  border-left-color: #ffb642;
+  color: #ffd078;
+}
+
+.connect-auto-copy-status.error {
+  border-left-color: #ff3048;
+  color: #ff8d98;
+}
+
+.connect-token-tools {
+  margin-top: 7px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.connect-clipboard-button {
+  min-height: 31px;
+  padding: 0 10px;
+  border: 1px solid #343940;
+  background: #111419;
+  color: #aeb4bb;
+  font-family: inherit;
+  font-size: 8px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.connect-clipboard-button:hover {
+  border-color: rgba(255, 43, 63, 0.58);
+  color: #fff;
+}
+
+/* Account list row with a separate delete control. */
+.account-mini-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  gap: 5px;
+}
+
+.account-mini-row .account-mini {
+  min-width: 0;
+}
+
+.account-mini-row .account-mini.active {
+  border-color: rgba(255, 43, 63, 0.4);
+}
+
+.account-delete-trigger {
+  width: 34px;
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  border: 1px solid transparent;
+  background: #0d0e10;
+  color: #676e76;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.account-delete-trigger:hover {
+  border-color: rgba(255, 48, 72, 0.55);
+  background: rgba(255, 48, 72, 0.09);
+  color: #ff5366;
+}
+
+.account-delete-trigger svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+
+/* Delete modal */
+.delete-account-overlay {
+  position: fixed;
+  z-index: 72000;
+  inset: 0;
+  padding:
+    max(18px, env(safe-area-inset-top))
+    18px
+    max(18px, env(safe-area-inset-bottom));
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  background: rgba(2, 4, 6, 0.88);
+}
+
+.delete-account-overlay[hidden] {
+  display: none !important;
+}
+
+.delete-account-modal {
+  width: min(470px, 100%);
+  overflow: hidden;
+  border: 1px solid rgba(255, 48, 72, 0.64);
+  background:
+    linear-gradient(
+      145deg,
+      #151014,
+      #080a0d 72%
+    );
+  box-shadow:
+    0 30px 100px rgba(0, 0, 0, 0.82),
+    0 0 34px rgba(255, 48, 72, 0.11);
+}
+
+.delete-account-header {
+  min-height: 68px;
+  padding: 13px 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 48, 72, 0.22);
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 48, 72, 0.1),
+      transparent 62%
+    );
+}
+
+.delete-account-header h2 {
+  margin: 4px 0 0;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 19px;
+}
+
+.delete-account-kicker {
+  color: #ff5366;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 1.7px;
+}
+
+.delete-account-body {
+  padding: 15px;
+}
+
+.delete-account-warning {
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 35px minmax(0, 1fr);
+  gap: 11px;
+  border: 1px solid rgba(255, 48, 72, 0.28);
+  background: rgba(255, 48, 72, 0.055);
+}
+
+.delete-warning-icon {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 48, 72, 0.56);
+  color: #ff5366;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.delete-account-warning strong {
+  color: #fff;
+  font-size: 10px;
+}
+
+.delete-account-warning p {
+  margin: 5px 0 0;
+  color: #9299a1;
+  font-size: 8px;
+  line-height: 1.65;
+}
+
+.delete-account-target {
+  margin: 11px 0;
+  padding: 11px;
+  display: grid;
+  gap: 4px;
+  border: 1px solid var(--line-soft);
+  background: #0d1014;
+}
+
+.delete-account-target > span {
+  color: #747c85;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.delete-account-target strong {
+  color: #fff;
+  font-size: 14px;
+}
+
+.delete-account-target small {
+  color: #8b929a;
+  font-size: 8px;
+}
+
+.delete-account-pin {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid #373c43;
+  outline: none;
+  background: #07090c;
+  color: #fff;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 7px;
+  text-align: center;
+}
+
+.delete-account-pin:focus {
+  border-color: rgba(255, 48, 72, 0.72);
+  box-shadow: 0 0 0 2px rgba(255, 48, 72, 0.09);
+}
+
+.delete-account-message {
+  min-height: 30px;
+  margin-top: 7px;
+  padding: 7px 9px;
+  border: 1px solid var(--line-soft);
+  color: #777f88;
+  font-size: 8px;
+  line-height: 1.55;
+}
+
+.delete-account-message.error {
+  border-color: rgba(255, 48, 72, 0.38);
+  color: #ff8794;
+}
+
+.delete-account-actions {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr);
+  gap: 8px;
+}
+
+.delete-account-confirm {
+  min-height: 42px;
+  border: 1px solid #ff3048;
+  background: #ff3048;
+  color: #08090a;
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.delete-account-confirm:disabled {
+  border-color: #292d32;
+  background: #20242a;
+  color: #656c74;
+  cursor: not-allowed;
+}
+
+body.delete-account-open {
+  overflow: hidden;
+}
+
+@media (max-width: 540px) {
+  .delete-account-overlay {
+    padding:
+      max(9px, env(safe-area-inset-top))
+      9px
+      calc(78px + env(safe-area-inset-bottom));
+    place-items: start center;
+  }
+
+  .delete-account-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .delete-account-actions
+  .connect-secondary-button {
+    order: 2;
+  }
+
+  .account-mini-row {
+    grid-template-columns: minmax(0, 1fr) 36px;
+  }
+}
