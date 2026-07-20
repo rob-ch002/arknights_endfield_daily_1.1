@@ -3496,9 +3496,102 @@ function openDeleteAccountModal(slug) {
 
   setDeleteAccountOpen(true);
 
+  $("#deleteAccountMessage").className =
+    "delete-account-message";
+
+  $("#deleteAccountMessage").textContent =
+    "Memeriksa dukungan backend...";
+
+  getBackendCapabilities()
+    .then(response => {
+      if (
+        state.pendingDeleteSlug !== slug
+      ) {
+        return;
+      }
+
+      const deploymentError =
+        backendDeploymentErrorMessage(
+          response
+        );
+
+      if (deploymentError) {
+        $("#deleteAccountMessage").className =
+          "delete-account-message error";
+
+        $("#deleteAccountMessage").textContent =
+          deploymentError;
+
+        $("#confirmDeleteAccount").disabled =
+          true;
+
+        return;
+      }
+
+      $("#deleteAccountMessage").className =
+        "delete-account-message";
+
+      $("#deleteAccountMessage").textContent =
+        response?.apiVersion
+          ? `Backend API v${response.apiVersion} siap. Masukkan PIN 6 digit.`
+          : "Masukkan PIN 6 digit.";
+    });
+
   setTimeout(() => {
     $("#deleteAccountPin").focus();
   }, 80);
+}
+
+async function getBackendCapabilities() {
+  try {
+    const response =
+      await gasRequest(
+        "capabilities"
+      );
+
+    return response;
+  } catch (_) {
+    return null;
+  }
+}
+
+function backendDeploymentErrorMessage(response) {
+  const message =
+    String(
+      response?.message || ""
+    );
+
+  const actions =
+    Array.isArray(response?.actions)
+      ? response.actions
+      : [];
+
+  const supportsDelete =
+    actions.some(action =>
+      String(action).toLowerCase() ===
+      "deleteaccount"
+    );
+
+  if (
+    message.toLowerCase().includes(
+      "action tidak dikenali"
+    ) ||
+    message.toLowerCase().includes(
+      "tidak dikenali"
+    ) ||
+    (
+      response?.apiVersion &&
+      !supportsDelete
+    )
+  ) {
+    return (
+      "Backend Google Apps Script masih versi lama. " +
+      "Timpa Code.gs v23, buat New version pada deployment, " +
+      "lalu pastikan config.js memakai URL /exec deployment tersebut."
+    );
+  }
+
+  return "";
 }
 
 async function deleteLinkedAccount() {
@@ -3550,7 +3643,7 @@ async function deleteLinkedAccount() {
   try {
     const response =
       await gasRequest(
-        "deleteAccount",
+        "deleteaccount",
         {
           slug,
           pin
@@ -3562,7 +3655,13 @@ async function deleteLinkedAccount() {
       response.success !== true ||
       !response.state?.accounts
     ) {
+      const deploymentError =
+        backendDeploymentErrorMessage(
+          response
+        );
+
       throw new Error(
+        deploymentError ||
         response?.message ||
         "Akun gagal dihapus."
       );
