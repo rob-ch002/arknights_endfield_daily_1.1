@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap"
         rel="stylesheet">
-  <link rel="stylesheet" href="./dashboard.css?v=20260720-connect20">
+  <link rel="stylesheet" href="./dashboard.css?v=20260721-connect21">
 </head>
 
 <body>
@@ -575,9 +575,10 @@
             <div class="connect-paste-area">
               <strong>Tempel respons lengkap</strong>
               <p>
-                Respons akan dibaca di browser. Dashboard hanya
-                mengirim nilai <code>account_token</code> ke
-                Google Apps Script untuk validasi.
+                Respons akan dibaca di browser. Format resmi
+                <code>data.content</code> dikenali otomatis,
+                lalu hanya nilai token yang dikirim ke Google Apps
+                Script untuk validasi.
               </p>
 
               <label
@@ -592,7 +593,7 @@
                 rows="7"
                 spellcheck="false"
                 autocomplete="off"
-                placeholder='Contoh: {"account_token":"..."}'></textarea>
+                placeholder='Contoh: {"data":{"content":"TOKEN..."}}'></textarea>
 
               <div
                 id="connectTokenStatus"
@@ -722,7 +723,7 @@
     </form>
   </div>
 
-  <script src="./config.js?v=20260720-connect20"></script>
-  <script src="./dashboard.js?v=20260720-connect20"></script>
+  <script src="./config.js?v=20260721-connect21"></script>
+  <script src="./dashboard.js?v=20260721-connect21"></script>
 </body>
 </html>

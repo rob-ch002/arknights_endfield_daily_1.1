@@ -2703,6 +2703,21 @@ function bindCopyUidInteraction() {
   );
 }
 
+function isLikelyAccountToken(value) {
+  if (typeof value !== "string") {
+    return false;
+  }
+
+  const token =
+    value.trim();
+
+  return (
+    token.length >= 12 &&
+    token.length <= 512 &&
+    /^[A-Za-z0-9+/_=%.-]+$/.test(token)
+  );
+}
+
 function findTokenByKey(
   value,
   depth = 0
@@ -2710,7 +2725,7 @@ function findTokenByKey(
   if (
     value === null ||
     value === undefined ||
-    depth > 8
+    depth > 10
   ) {
     return "";
   }
@@ -2735,9 +2750,20 @@ function findTokenByKey(
     return "";
   }
 
+  /*
+   * Respons endpoint resmi umumnya:
+   * {
+   *   "data": {
+   *     "content": "ACCOUNT_TOKEN"
+   *   }
+   * }
+   */
   const preferredKeys = [
     "account_token",
-    "accountToken"
+    "accountToken",
+    "content",
+    "token",
+    "value"
   ];
 
   for (const key of preferredKeys) {
@@ -2746,19 +2772,35 @@ function findTokenByKey(
 
     if (
       typeof candidate === "string" &&
-      candidate.trim()
+      isLikelyAccountToken(candidate)
     ) {
       return candidate.trim();
     }
   }
 
-  for (const [key, child] of Object.entries(value)) {
+  const wrapperKeys = [
+    "data",
+    "result",
+    "payload",
+    "response"
+  ];
+
+  for (const key of wrapperKeys) {
     if (
-      key.toLowerCase() === "token" &&
-      typeof child === "string" &&
-      child.trim()
+      Object.prototype.hasOwnProperty.call(
+        value,
+        key
+      )
     ) {
-      return child.trim();
+      const found =
+        findTokenByKey(
+          value[key],
+          depth + 1
+        );
+
+      if (found) {
+        return found;
+      }
     }
   }
 
@@ -2783,33 +2825,42 @@ function normalizeAccountToken(value) {
   }
 
   let token =
-    value.trim()
-      .replace(/^["']|["']$/g, "");
+    value
+      .replace(/^\uFEFF/, "")
+      .trim()
+      .replace(/^["']|["']$/g, "")
+      .trim();
+
+  /*
+   * Jangan menerima seluruh objek JSON sebagai token.
+   */
+  if (
+    token.startsWith("{") ||
+    token.startsWith("[")
+  ) {
+    return "";
+  }
 
   try {
     token =
       decodeURIComponent(token);
   } catch (_) {
-    // Respons tidak harus berupa URI encoded.
+    // Token tidak harus URI encoded.
   }
 
   token =
     token.trim();
 
-  if (
-    token.length < 12 ||
-    token.length > 512 ||
-    /\s/.test(token)
-  ) {
-    return "";
-  }
-
-  return token;
+  return isLikelyAccountToken(token)
+    ? token
+    : "";
 }
 
 function extractAccountToken(responseText) {
   const text =
-    String(responseText || "").trim();
+    String(responseText || "")
+      .replace(/^\uFEFF/, "")
+      .trim();
 
   if (!text) {
     return "";
@@ -2823,23 +2874,32 @@ function extractAccountToken(responseText) {
     parsed = null;
   }
 
-  if (typeof parsed === "string") {
-    const direct =
-      normalizeAccountToken(parsed);
-
-    if (direct) {
-      return direct;
-    }
+  /*
+   * Mendukung JSON yang terbungkus sebagai string JSON.
+   */
+  for (
+    let attempt = 0;
+    attempt < 3 &&
+    typeof parsed === "string";
+    attempt += 1
+  ) {
+    const stringValue =
+      parsed.trim();
 
     try {
       parsed =
-        JSON.parse(parsed);
+        JSON.parse(stringValue);
     } catch (_) {
-      parsed = null;
+      return normalizeAccountToken(
+        stringValue
+      );
     }
   }
 
-  if (parsed && typeof parsed === "object") {
+  if (
+    parsed &&
+    typeof parsed === "object"
+  ) {
     const nested =
       normalizeAccountToken(
         findTokenByKey(parsed)
@@ -2848,11 +2908,17 @@ function extractAccountToken(responseText) {
     if (nested) {
       return nested;
     }
+
+    /*
+     * JSON valid tanpa token tidak boleh jatuh kembali
+     * menjadi seluruh JSON sebagai token.
+     */
+    return "";
   }
 
   const labelledMatch =
     text.match(
-      /["']?(?:account_token|accountToken)["']?\s*[:=]\s*["']([^"']+)["']/i
+      /["']?(?:account_token|accountToken|content|token)["']?\s*[:=]\s*["']([^"']+)["']/i
     );
 
   if (labelledMatch) {
@@ -2916,7 +2982,7 @@ function updateConnectAccountState() {
       "connect-token-status invalid";
 
     status.textContent =
-      "account_token belum ditemukan. Tempel seluruh respons dari endpoint resmi.";
+      "Token belum ditemukan. Respons resmi harus memiliki data.content, account_token, atau token.";
   }
 
   submit.disabled =
