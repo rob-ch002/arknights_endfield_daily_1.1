@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#050607">
+
+  <title>Endfield Protocol Dashboard</title>
+
+  <link rel="icon" type="image/png"
+        href="https://cdn2.cdnstep.com/uZonBNFhuQtCPjNRKuWd/cover-2.thumb256.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap"
+        rel="stylesheet">
+  <link rel="stylesheet" href="./dashboard.css?v=20260720-connect20">
+</head>
+
+<body>
+  <div class="background-media" aria-hidden="true"></div>
+
+  <div class="app-shell">
+    <aside id="sidebar" class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">
+          <img
+            src="https://raw.githubusercontent.com/Yue-plus/endfield_icons/main/svg/endfield-industries.svg"
+            alt="Endfield Industries">
+        </div>
+
+        <div class="brand-copy">
+          <span class="brand-title">Endfield <span class="brand-slash">//</span> Protocol</span>
+          <span class="brand-beta">BETA</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-label">Control Panel</div>
+
+        <button class="nav-button active" type="button">
+          <span class="nav-icon">▦</span>
+          <span>Dashboard</span>
+        </button>
+
+        <div class="nav-label">Registered Accounts</div>
+        <div id="accountMiniList" class="account-mini-list"></div>
+
+        <button
+          id="connectAccountButton"
+          class="nav-button connect-account-nav"
+          type="button">
+          <span class="nav-icon nav-svg-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 5v14M5 12h14"></path>
+              <path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"></path>
+            </svg>
+          </span>
+          <span>Connect Account</span>
+        </button>
+
+        <div class="nav-label">Actions</div>
+
+        <button id="sidebarCheckinButton" class="nav-button" type="button">
+          <span class="nav-icon nav-svg-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M7 2v3M17 2v3M3.5 9h17M5 4h14a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/>
+                <path d="m8 15 2.2 2.2L16.5 11"/>
+              </svg>
+          </span>
+          <span>Check-in</span>
+        </button>
+
+        <button id="sidebarRefreshButton" class="nav-button" type="button">
+          <span class="nav-icon">↻</span>
+          <span>Refresh Data</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="logoutButton" class="logout-button" type="button">
+          ⇱ Logout
+        </button>
+      </div>
+    </aside>
+
+    <section class="main-shell">
+      <header class="topbar">
+        <div class="topbar-title">
+          <button id="mobileMenuButton"
+                  class="mobile-menu-button"
+                  type="button"
+                  aria-label="Buka menu">☰</button>
+          <span>Control Panel / Dashboard</span>
+        </div>
+
+        <div class="topbar-actions">
+          <div class="topbar-status">
+            <span id="networkIndicator" class="online-dot"></span>
+            <span>Global Network Online</span>
+          </div>
+
+          <div class="notification-center">
+            <button
+              id="notificationButton"
+              class="notification-button"
+              type="button"
+              aria-label="Buka pusat notifikasi"
+              aria-expanded="false">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z"></path>
+                <path d="M10 21h4"></path>
+              </svg>
+
+              <span
+                id="notificationBadge"
+                class="notification-badge"
+                hidden>0</span>
+            </button>
+
+          </div>
+        </div>
+      </header>
+
+      <main class="main-content">
+        <div class="content-width">
+          <section class="page-heading">
+            <div class="page-title-row">
+              <h1>Data Overview</h1>
+              <span class="badge">Beta 1.0</span>
+            </div>
+            <p>Real-time operator account information</p>
+          </section>
+
+          <div class="dashboard-toolbar">
+            <button id="checkinButton"
+                    class="action-button primary"
+                    type="button">
+              <span class="button-svg-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M7 2v3M17 2v3M3.5 9h17M5 4h14a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/>
+                <path d="m8 15 2.2 2.2L16.5 11"/>
+              </svg>
+              </span>
+              <span>Check-in</span>
+            </button>
+
+            <button id="refreshButton"
+                    class="action-button"
+                    type="button">
+              <span>↻</span>
+              <span>Refresh</span>
+            </button>
+
+            <span id="toolbarInfo" aria-hidden="true"></span>
+          </div>
+
+          <section class="overview-grid">
+            <!-- USER PROFILE -->
+            <article class="panel user-panel">
+              <header class="panel-header">
+                <div>
+                  <h2>User Profile</h2>
+                  <small>User profile</small>
+                </div>
+                <span>01</span>
+              </header>
+
+              <div class="user-profile-body">
+                <div class="profile-identity">
+                  <div id="profileAvatar"
+                       class="profile-avatar">
+                    <span
+                      id="profileAvatarFallback"
+                      class="profile-avatar-fallback"
+                      aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                      <circle cx="12" cy="8" r="4"></circle>
+                      <path d="M4.5 21c.8-5 3.2-7.5 7.5-7.5S18.7 16 19.5 21"></path>
+                      <path d="M7.5 5.8 5.8 4.2M16.5 5.8l1.7-1.6"></path>
+                    </svg>
+                  </span>
+                    <img id="profileAvatarImage"
+                         alt="Avatar akun"
+                         hidden>
+                  </div>
+
+                  <div>
+                    <h3 id="profileName">—</h3>
+                    <p id="profileLevelLabel">Lv.—</p>
+                  </div>
+                </div>
+
+                <div class="identity-list">
+                  <div class="identity-row">
+                    <span>UID</span>
+                    <strong
+                      id="profileUid"
+                      class="copyable-value"
+                      role="button"
+                      tabindex="0"
+                      aria-label="Salin UID akun"
+                      title="Klik untuk menyalin UID">—</strong>
+                  </div>
+
+                  <div class="identity-row">
+                    <span>Server</span>
+                    <strong id="profileServer">—</strong>
+                  </div>
+                </div>
+
+                <div class="profile-stats">
+                  <div class="metric-box">
+                    <span>Operators</span>
+                    <strong id="operatorCount">—</strong>
+                  </div>
+
+                  <div class="metric-box">
+                    <span>Level</span>
+                    <strong id="authorityLevel">—</strong>
+                  </div>
+
+                  <div class="metric-box">
+                    <span>Exploration Level</span>
+                    <strong id="explorationLevel">—</strong>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <!-- STAMINA -->
+            <article class="panel stamina-panel">
+              <header class="panel-header">
+                <div>
+                  <h2>Stamina</h2>
+                  <small>Sanity / energy</small>
+                </div>
+                <span>02</span>
+              </header>
+
+              <div class="stamina-body">
+                <div
+                  id="sanityGauge"
+                  class="sanity-radial"
+                  role="progressbar"
+                  aria-label="Sanity energy"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                  aria-valuenow="0">
+
+                  <svg
+                    class="sanity-radial-svg"
+                    viewBox="0 0 220 220"
+                    aria-hidden="true">
+                    <defs>
+                      <linearGradient
+                        id="sanityGaugeGradient"
+                        x1="15%"
+                        y1="85%"
+                        x2="88%"
+                        y2="12%">
+                        <stop
+                          offset="0%"
+                          stop-color="#8d0718"></stop>
+                        <stop
+                          offset="48%"
+                          stop-color="#ff2b3f"></stop>
+                        <stop
+                          offset="100%"
+                          stop-color="#ff8d97"></stop>
+                      </linearGradient>
+
+                      <mask id="sanitySegmentMask">
+                        <circle
+                          cx="110"
+                          cy="110"
+                          r="82"
+                          fill="none"
+                          stroke="#ffffff"
+                          stroke-width="17"
+                          pathLength="100"
+                          stroke-dasharray="1.62 1.12"
+                          transform="rotate(120 110 110)">
+                        </circle>
+                      </mask>
+                    </defs>
+
+                    <circle
+                      class="sanity-radial-track"
+                      cx="110"
+                      cy="110"
+                      r="82"
+                      fill="none"
+                      pathLength="100"
+                      stroke-dasharray="83.333 16.667"
+                      transform="rotate(120 110 110)"
+                      mask="url(#sanitySegmentMask)">
+                    </circle>
+
+                    <circle
+                      id="sanityGaugeArc"
+                      class="sanity-radial-progress"
+                      cx="110"
+                      cy="110"
+                      r="82"
+                      fill="none"
+                      pathLength="100"
+                      stroke-dasharray="0 100"
+                      transform="rotate(120 110 110)"
+                      mask="url(#sanitySegmentMask)">
+                    </circle>
+
+                    <path
+                      id="sanityGaugeCharge"
+                      class="sanity-radial-charge"
+                      d="M 69 181.014 A 82 82 0 1 1 151 181.014"
+                      fill="none"
+                      pathLength="100"
+                      stroke-dasharray="5 95"
+                      mask="url(#sanitySegmentMask)">
+                    </path>
+                  </svg>
+
+                  <div class="sanity-radial-center">
+                    <span class="sanity-radial-icon">
+                      <img
+                        src="https://endfield.wiki.gg/images/Sanity.png"
+                        alt=""
+                        referrerpolicy="no-referrer">
+                    </span>
+
+                    <strong id="sanityPercent">—%</strong>
+                    <span>Sanity</span>
+                  </div>
+                </div>
+
+                <p
+                  id="sanityGaugeCaption"
+                  class="sanity-radial-caption">
+                  Waiting for live energy data
+                </p>
+
+                <div class="sanity-summary">
+                  <div class="sanity-summary-item">
+                    <span>Current Energy</span>
+                    <strong>
+                      <b id="sanityCurrent">—</b>
+                      <small>
+                        / <span id="sanityMax">—</span>
+                      </small>
+                    </strong>
+                  </div>
+
+                  <div class="sanity-summary-item">
+                    <span>Full Recovery</span>
+                    <strong id="sanityRecoveryTime">—</strong>
+                  </div>
+                </div>
+
+                <div class="sanity-last-update">
+                  <span>Last data update</span>
+                  <strong id="dataUpdatedAt">—</strong>
+                </div>
+              </div>
+            </article>
+
+            <!-- ACTIVITY TASKS -->
+            <article class="panel activity-panel">
+              <header class="panel-header">
+                <div>
+                  <h2>Activity Tasks</h2>
+                  <small>Activity</small>
+                </div>
+                <span>03</span>
+              </header>
+
+              <div class="activity-body">
+                <div class="feature-icon activity-icon">
+                  <img
+                    src="https://endfield.wiki.gg/images/thumb/Guide_icon.png/40px-Guide_icon.png?4670a8"
+                    alt="Activity Tasks"
+                    referrerpolicy="no-referrer">
+                </div>
+
+                <div class="task-block task-daily">
+                  <div class="task-heading">
+                    <span>Activity Points</span>
+                    <strong class="task-value">
+                      <span class="task-fraction">
+                        <b id="dailyCurrent">—</b>
+                        <small>/</small>
+                        <small id="dailyMax">—</small>
+                      </span>
+                      <em id="dailyPercent"
+                          class="task-percent">—%</em>
+                    </strong>
+                  </div>
+
+                  <div id="dailyMeter"
+                       class="progress-track task-meter daily-meter"
+                       role="progressbar"
+                       aria-label="Activity Points"
+                       aria-valuemin="0"
+                       aria-valuemax="100"
+                       aria-valuenow="0">
+                    <div id="dailyProgress"
+                         class="progress-fill daily-fill"></div>
+                  </div>
+                </div>
+
+                <div class="task-block task-weekly">
+                  <div class="task-heading">
+                    <span>Weekly Routine</span>
+                    <strong class="task-value">
+                      <span class="task-fraction">
+                        <b id="weeklyCurrent">—</b>
+                        <small>/</small>
+                        <small id="weeklyMax">—</small>
+                      </span>
+                      <em id="weeklyPercent"
+                          class="task-percent">—%</em>
+                    </strong>
+                  </div>
+
+                  <div id="weeklyMeter"
+                       class="progress-track task-meter weekly-meter"
+                       role="progressbar"
+                       aria-label="Weekly Routine"
+                       aria-valuemin="0"
+                       aria-valuemax="100"
+                       aria-valuenow="0">
+                    <div id="weeklyProgress"
+                         class="progress-fill weekly-fill"></div>
+                  </div>
+                </div>
+
+                <div class="task-block task-protocol">
+                  <div class="task-heading">
+                    <span>Protocol Pass</span>
+                    <strong class="task-value">
+                      <span class="task-fraction">
+                        <b id="protocolCurrent">—</b>
+                        <small>/</small>
+                        <small id="protocolMax">—</small>
+                      </span>
+                      <em id="protocolPercent"
+                          class="task-percent">—%</em>
+                    </strong>
+                  </div>
+
+                  <div id="protocolMeter"
+                       class="progress-track task-meter protocol-meter"
+                       role="progressbar"
+                       aria-label="Protocol Pass"
+                       aria-valuemin="0"
+                       aria-valuemax="100"
+                       aria-valuenow="0">
+                    <div id="protocolProgress"
+                         class="progress-fill protocol-fill"></div>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </section>
+
+          <section class="panel status-panel">
+            <header class="panel-header">
+              <div>
+                <h2>Account Sync Status</h2>
+                <small>Source availability and refresh state</small>
+              </div>
+              <span>04</span>
+            </header>
+
+            <div class="status-body">
+              <div class="status-item">
+                <span>Username</span>
+                <strong id="selectedAccountStatus">—</strong>
+              </div>
+              <div class="status-item">
+                <span>Profile source</span>
+                <strong id="profileSourceStatus">Waiting</strong>
+              </div>
+              <div class="status-item">
+                <span>Live source</span>
+                <strong id="liveSourceStatus">Waiting</strong>
+              </div>
+              <div class="status-item">
+                <span>Browser refresh</span>
+                <strong id="browserRefreshAt">—</strong>
+              </div>
+            </div>
+
+            <div id="sourceErrors"
+                 class="source-errors"
+                 hidden></div>
+          </section>
+        </div>
+      </main>
+    </section>
+  </div>
+
+
+  <!-- Connect Account overlay -->
+  <div
+    id="connectAccountOverlay"
+    class="connect-account-overlay"
+    hidden>
+    <section
+      class="connect-account-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="connectAccountTitle">
+
+      <header class="connect-account-header">
+        <div>
+          <span class="connect-account-kicker">
+            GRYPHLINE ACCOUNT LINK
+          </span>
+          <h2 id="connectAccountTitle">
+            Connect Account
+          </h2>
+        </div>
+
+        <button
+          id="closeConnectAccount"
+          class="connect-account-close"
+          type="button"
+          aria-label="Tutup">
+          ×
+        </button>
+      </header>
+
+      <div class="connect-account-body">
+        <ol class="connect-account-steps">
+          <li>
+            <span class="connect-step-number">01</span>
+            <div>
+              <strong>Masuk ke situs resmi</strong>
+              <p>
+                Buka situs resmi Endfield dan pastikan akun
+                Gryphline sudah login.
+              </p>
+              <a
+                class="connect-external-link"
+                href="https://endfield.gryphline.com/"
+                target="_blank"
+                rel="noopener noreferrer">
+                Buka situs resmi
+                <span aria-hidden="true">↗</span>
+              </a>
+            </div>
+          </li>
+
+          <li>
+            <span class="connect-step-number">02</span>
+            <div>
+              <strong>Salin respons account_token</strong>
+              <p>
+                Setelah login, buka endpoint resmi berikut dan
+                salin seluruh respons yang terlihat.
+              </p>
+              <a
+                class="connect-external-link"
+                href="https://web-api.gryphline.com/cookie_store/account_token"
+                target="_blank"
+                rel="noopener noreferrer">
+                Buka API account_token
+                <span aria-hidden="true">↗</span>
+              </a>
+            </div>
+          </li>
+
+          <li>
+            <span class="connect-step-number">03</span>
+            <div class="connect-paste-area">
+              <strong>Tempel respons lengkap</strong>
+              <p>
+                Respons akan dibaca di browser. Dashboard hanya
+                mengirim nilai <code>account_token</code> ke
+                Google Apps Script untuk validasi.
+              </p>
+
+              <label
+                for="accountTokenResponse"
+                class="connect-input-label">
+                Respons API
+              </label>
+
+              <textarea
+                id="accountTokenResponse"
+                class="connect-token-input"
+                rows="7"
+                spellcheck="false"
+                autocomplete="off"
+                placeholder='Contoh: {"account_token":"..."}'></textarea>
+
+              <div
+                id="connectTokenStatus"
+                class="connect-token-status"
+                aria-live="polite">
+                Menunggu respons API ditempel.
+              </div>
+            </div>
+          </li>
+        </ol>
+
+        <label class="connect-terms">
+          <input
+            id="connectAccountTerms"
+            type="checkbox">
+          <span>
+            Saya memahami bahwa account_token memberikan akses
+            ke sesi akun saya, dan saya menyetujui token disimpan
+            di Google Apps Script agar dashboard dapat melakukan
+            sinkronisasi dan check-in.
+          </span>
+        </label>
+
+        <div class="connect-account-actions">
+          <button
+            id="cancelConnectAccount"
+            class="connect-secondary-button"
+            type="button">
+            Batal
+          </button>
+
+          <button
+            id="connectAccountSubmit"
+            class="action-button primary connect-submit-button"
+            type="button"
+            disabled>
+            <span class="button-svg-icon">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M10 13a5 5 0 0 0 7.1.1l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"></path>
+                <path d="M14 11a5 5 0 0 0-7.1-.1l-2 2A5 5 0 0 0 12 20l1.1-1.1"></path>
+              </svg>
+            </span>
+            <span>Tautkan Akun</span>
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Root-level notification overlay -->
+  <section
+    id="notificationPanel"
+    class="notification-panel"
+    aria-label="Riwayat notifikasi"
+    hidden>
+    <div class="notification-panel-header">
+      <div>
+        <span class="notification-kicker">SYSTEM ALERTS</span>
+        <h2>Notifications</h2>
+      </div>
+
+      <button
+        id="markAllNotificationsRead"
+        class="notification-text-button"
+        type="button">
+        Tandai dibaca
+      </button>
+    </div>
+
+    <div
+      id="notificationList"
+      class="notification-list"></div>
+
+    <div class="notification-panel-footer">
+      <button
+        id="enableDeviceNotifications"
+        class="notification-footer-button"
+        type="button">
+        Aktifkan notifikasi perangkat
+      </button>
+
+      <button
+        id="clearNotifications"
+        class="notification-footer-button danger"
+        type="button">
+        Hapus riwayat
+      </button>
+    </div>
+  </section>
+
+  <div id="toastRegion"
+       class="toast-region"
+       aria-live="polite"></div>
+
+  <div id="loginLayer" class="login-layer">
+    <form id="loginForm"
+          class="login-card"
+          autocomplete="off">
+      <div class="login-kicker">
+        SECURE PROTOCOL // SIX-DIGIT PIN
+      </div>
+
+      <h2>Operator Database</h2>
+
+      <p>
+        Masukkan PIN 6 digit untuk membuka dashboard privat Endfield.
+      </p>
+
+      <input id="pinInput"
+             class="pin-input"
+             type="password"
+             inputmode="numeric"
+             maxlength="6"
+             placeholder="••••••"
+             required>
+
+      <button id="loginButton"
+              class="login-button"
+              type="submit">
+        AUTHORIZE SESSION
+      </button>
+
+      <div id="loginMessage"
+           class="login-message">
+        STATUS: AWAITING AUTHORIZATION
+      </div>
+    </form>
+  </div>
+
+  <script src="./config.js?v=20260720-connect20"></script>
+  <script src="./dashboard.js?v=20260720-connect20"></script>
+</body>
+</html>
