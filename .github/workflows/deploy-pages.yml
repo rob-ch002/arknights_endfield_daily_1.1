@@ -9,6 +9,10 @@ on:
       - "dashboard.css"
       - "dashboard.js"
       - "config.js"
+      - "manifest.webmanifest"
+      - "sw.js"
+      - "offline.html"
+      - "assets/**"
       - ".github/workflows/deploy-pages.yml"
   workflow_dispatch:
 
@@ -42,6 +46,10 @@ jobs:
           cp dashboard.css _site/dashboard.css
           cp dashboard.js _site/dashboard.js
           cp config.js _site/config.js
+          cp manifest.webmanifest _site/manifest.webmanifest
+          cp sw.js _site/sw.js
+          cp offline.html _site/offline.html
+          cp -R assets _site/assets
           touch _site/.nojekyll
 
       - name: Configure GitHub Pages
