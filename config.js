@@ -7,16 +7,27 @@ window.ENDFIELD_CONFIG = Object.freeze({
    * cukup ganti nilai ini.
    */
   gasUrl:
-    "https://script.google.com/macros/s/AKfycby0hVmUegB7eP7kH2srXYUZNV7nQDVzKPyDcbqNH-wCoHLALPhjisLLcISqBbXZwUOWGg/exec",
+    "https://script.google.com/macros/s/AKfycbxh7xI9jQoYHNc07LANgmje2FBAGFsFbgjC6HhDT73CoQrKWMGNS5kma9n8YbL8hQUtfA/exec",
 
   /*
    * Browser meminta profil, stamina, dan Activity Tasks terbaru
    * setiap 5 detik ketika tab sedang terlihat.
    * Ini bukan menekan tombol Refresh secara otomatis.
    */
-  autoSyncMs: 5000,
+  autoSyncMs: 10000,
 
   requestTimeoutMs: 90000,
+
+  syncIntervals: Object.freeze({
+    visual: 5000,
+    balanced: 10000,
+    battery: 30000
+  }),
+
+  performanceModeDefault: "balanced",
+
+  /* Isi dengan public VAPID key dari GitHub secret VAPID_PUBLIC_KEY. */
+  pushVapidPublicKey: "",
 
   // PIN default: 123456
   pinSha256:

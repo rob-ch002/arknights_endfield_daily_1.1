@@ -1,5 +1,5 @@
 {
-  "name": "Endfield Protocol Dashboard",
+  "name": "Endfield Protocol Reliability Suite",
   "short_name": "Endfield",
   "start_url": "./",
   "scope": "./",
@@ -43,6 +43,29 @@
           "sizes": "192x192"
         }
       ]
+    },
+    {
+      "name": "History Center",
+      "short_name": "History",
+      "url": "./?view=history",
+      "icons": [
+        {
+          "src": "./assets/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Reliability Settings",
+      "short_name": "Settings",
+      "url": "./?view=settings",
+      "icons": [
+        {
+          "src": "./assets/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
-  ]
+  ],
+  "description": "Endfield multi-account telemetry, check-in, history, token health, push alerts, and offline retry."
 }

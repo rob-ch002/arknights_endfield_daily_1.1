@@ -23,9 +23,19 @@ const DEVICE_NOTIFICATION_ICON =
   "https://raw.githubusercontent.com/Yue-plus/endfield_icons/main/svg/endfield-industries.svg";
 const ACCOUNT_TOKEN_API_URL =
   "https://web-api.gryphline.com/cookie_store/account_token";
-const FRONTEND_VERSION = "30.0";
+const FRONTEND_VERSION = "31.0";
 const REQUEST_METRICS_KEY = "endfield_request_metrics_v1";
 const LAST_CHECKIN_KEY = "endfield_last_checkin_v1";
+const PERFORMANCE_MODE_KEY = "endfield_performance_mode_v1";
+const PASSKEY_CREDENTIAL_KEY = "endfield_passkey_credential_v1";
+const RETRY_DB_NAME = "endfield_retry_queue_v1";
+const RETRY_STORE_NAME = "operations";
+const PUSH_VAPID_PUBLIC_KEY = String(CONFIG.pushVapidPublicKey || "");
+const SYNC_INTERVALS = Object.freeze({
+  visual: Math.max(3000, Number(CONFIG.syncIntervals?.visual || 5000)),
+  balanced: Math.max(5000, Number(CONFIG.syncIntervals?.balanced || AUTO_SYNC_MS || 10000)),
+  battery: Math.max(15000, Number(CONFIG.syncIntervals?.battery || 30000))
+});
 const DEFAULT_NOTIFICATION_SETTINGS = Object.freeze({
   energyFull: true,
   dailyZero: true,
@@ -67,7 +77,13 @@ const state = {
   freshnessTimer: null,
   deferredInstallPrompt: null,
   pwaRegistered: false,
-  launchHandled: false
+  launchHandled: false,
+  performanceMode: localStorage.getItem(PERFORMANCE_MODE_KEY) || String(CONFIG.performanceModeDefault || "balanced"),
+  pushSubscription: null,
+  passkeyAvailable: false,
+  retryProcessing: false,
+  historyData: null,
+  tokenHealthData: null
 };
 
 const operationProgressState = {
@@ -175,6 +191,61 @@ async function gasRequestWithRetry(action, parameters = {}, maxAttempts = 3) {
     }
   }
   throw lastError;
+}
+
+function gasPostRequest(action, parameters = {}) {
+  if (!gasConfigured()) {
+    return Promise.reject(new Error("URL Google Apps Script belum benar di config.js."));
+  }
+
+  return new Promise((resolve, reject) => {
+    const nonce = `endfield_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const frameName = `endfieldPostFrame_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const iframe = document.createElement("iframe");
+    const form = document.createElement("form");
+    let completed = false;
+    let timeoutId = null;
+
+    const cleanup = () => {
+      window.removeEventListener("message", onMessage);
+      if (timeoutId !== null) clearTimeout(timeoutId);
+      form.remove();
+      iframe.remove();
+    };
+    const finish = handler => value => {
+      if (completed) return;
+      completed = true;
+      cleanup();
+      handler(value);
+    };
+    const onMessage = event => {
+      const data = event.data;
+      if (!data || data.source !== "endfield-gas-post" || data.nonce !== nonce) return;
+      finish(resolve)(data.payload);
+    };
+
+    iframe.name = frameName;
+    iframe.hidden = true;
+    iframe.setAttribute("aria-hidden", "true");
+    form.method = "POST";
+    form.action = GAS_URL;
+    form.target = frameName;
+    form.hidden = true;
+
+    const fields = { action, response_mode: "postmessage", nonce, ...parameters };
+    Object.entries(fields).forEach(([name, value]) => {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = name;
+      input.value = String(value ?? "");
+      form.appendChild(input);
+    });
+
+    window.addEventListener("message", onMessage);
+    document.body.append(iframe, form);
+    timeoutId = setTimeout(finish(() => reject(new Error("POST Google Apps Script melewati batas waktu."))), REQUEST_TIMEOUT_MS);
+    form.submit();
+  });
 }
 
 function gasRequest(action, parameters = {}) {
@@ -2433,6 +2504,11 @@ async function syncState({
       document.body.classList.add("has-load-error");
     }
 
+    if (manual && !navigator.onLine) {
+      await addQueuedOperation("sync", {});
+      showToast({ type: "warning", title: "Sync queued", message: "Perangkat offline. Sync akan dicoba lagi saat koneksi kembali." });
+    }
+
     if (
       manual ||
       !state.data
@@ -2507,27 +2583,28 @@ async function syncSelectedAccount() {
   }
 }
 
+function currentAutoSyncInterval() {
+  return SYNC_INTERVALS[state.performanceMode] || SYNC_INTERVALS.balanced;
+}
+
 function startAutoSync() {
   stopAutoSync();
 
-  const firstDelay = Math.min(AUTO_SYNC_MS, 1800 + Math.floor(Math.random() * 1200));
-  setTimeout(() => {
-    if (document.visibilityState === "visible" && sessionStorage.getItem(SESSION_KEY) === "1") {
-      syncState({ action: "state", manual: false });
-    }
-  }, firstDelay);
-
   state.autoTimer = setInterval(() => {
     if (
-      document.visibilityState === "visible" &&
-      sessionStorage.getItem(SESSION_KEY) === "1"
+      document.hidden ||
+      sessionStorage.getItem(SESSION_KEY) !== "1" ||
+      state.checkingIn ||
+      !navigator.onLine
     ) {
-      syncState({
-        action: "state",
-        manual: false
-      });
+      return;
     }
-  }, AUTO_SYNC_MS);
+
+    syncState({
+      action: "state",
+      manual: false
+    });
+  }, currentAutoSyncInterval());
 }
 
 function stopAutoSync() {
@@ -2804,6 +2881,10 @@ async function runCheckin() {
       }, 1200);
     }
   } catch (error) {
+    if (!navigator.onLine) {
+      await addQueuedOperation("run", {});
+      showToast({ type: "warning", title: "Check-in queued", message: "Perangkat offline. Check-in akan dicoba kembali saat koneksi tersedia." });
+    }
     showToast({
       type: "error",
       title: "Check-in failed",
@@ -3778,6 +3859,8 @@ async function refreshDiagnostics() {
   const account = selectedAccount();
   $("#diagTokenStatus").textContent = account?.profile_available && account?.live_available ? "VALID" : account?.errors?.length ? "NEEDS ATTENTION" : "UNKNOWN";
   $("#diagPwaStatus").textContent = window.matchMedia("(display-mode: standalone)").matches ? "Installed" : state.pwaRegistered ? "Ready" : "Unavailable";
+  await Promise.allSettled([refreshQuotaGuard(), updateRetryUi(), refreshPushStatus()]);
+  $("#diagPerformanceMode").textContent = state.performanceMode.toUpperCase();
   try {
     const response = await gasRequestWithRetry("capabilities", {}, 2);
     state.backendCapabilities = response;
@@ -3968,7 +4051,7 @@ function backendDeploymentErrorMessage(response) {
   ) {
     return (
       "Backend Google Apps Script masih versi lama. " +
-      "Timpa Code.gs v30, buat New version pada deployment, " +
+      "Timpa Code.gs v31, buat New version pada deployment, " +
       "lalu pastikan config.js memakai URL /exec deployment tersebut."
     );
   }
@@ -4280,6 +4363,505 @@ function bindConnectAccount() {
   );
 }
 
+function setReliabilityOverlay(selector, open) {
+  setUtilityOverlay(selector, open);
+}
+
+function bytesToBase64Url(bytes) {
+  let binary = "";
+  new Uint8Array(bytes).forEach(value => { binary += String.fromCharCode(value); });
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+function base64UrlToBytes(value) {
+  const normalized = String(value || "").replace(/-/g, "+").replace(/_/g, "/");
+  const padded = normalized + "=".repeat((4 - normalized.length % 4) % 4);
+  const binary = atob(padded);
+  return Uint8Array.from(binary, char => char.charCodeAt(0));
+}
+
+function randomBytes(length = 32) {
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  return bytes;
+}
+
+function passkeySupported() {
+  return Boolean(window.PublicKeyCredential && navigator.credentials && window.isSecureContext);
+}
+
+function storedPasskey() {
+  try { return JSON.parse(localStorage.getItem(PASSKEY_CREDENTIAL_KEY) || "null"); } catch (_) { return null; }
+}
+
+function updatePasskeyUi() {
+  const supported = passkeySupported();
+  const credential = storedPasskey();
+  state.passkeyAvailable = supported && Boolean(credential?.credentialId);
+  const loginButton = $("#passkeyLoginButton");
+  if (loginButton) loginButton.hidden = !state.passkeyAvailable;
+  const status = $("#passkeyStatus");
+  if (status) {
+    status.className = `settings-inline-status${state.passkeyAvailable ? " success" : supported ? "" : " error"}`;
+    status.textContent = !supported
+      ? "WebAuthn tidak tersedia pada browser/konteks ini."
+      : state.passkeyAvailable
+        ? `Device credential registered: ${credential.label || "This device"}`
+        : "Belum ada device credential. Login dengan PIN lalu daftarkan perangkat.";
+  }
+  const removeButton = $("#removePasskeyButton");
+  if (removeButton) removeButton.disabled = !state.passkeyAvailable;
+}
+
+async function registerLocalPasskey() {
+  if (!passkeySupported()) throw new Error("WebAuthn tidak tersedia.");
+  if (sessionStorage.getItem(SESSION_KEY) !== "1") throw new Error("Login dengan PIN terlebih dahulu.");
+  const userId = randomBytes(32);
+  const credential = await navigator.credentials.create({
+    publicKey: {
+      challenge: randomBytes(32),
+      rp: { name: "Endfield Protocol", id: location.hostname },
+      user: {
+        id: userId,
+        name: "endfield-operator",
+        displayName: "Endfield Operator"
+      },
+      pubKeyCredParams: [
+        { type: "public-key", alg: -7 },
+        { type: "public-key", alg: -257 }
+      ],
+      authenticatorSelection: {
+        authenticatorAttachment: "platform",
+        residentKey: "preferred",
+        userVerification: "required"
+      },
+      timeout: 60000,
+      attestation: "none"
+    }
+  });
+  if (!credential) throw new Error("Pendaftaran passkey dibatalkan.");
+  localStorage.setItem(PASSKEY_CREDENTIAL_KEY, JSON.stringify({
+    credentialId: bytesToBase64Url(credential.rawId),
+    label: navigator.userAgentData?.platform || navigator.platform || "This device",
+    createdAt: new Date().toISOString()
+  }));
+  updatePasskeyUi();
+  showToast({ type: "success", title: "Device passkey registered", message: "Perangkat ini dapat membuka dashboard tanpa mengetik PIN." });
+}
+
+async function unlockWithLocalPasskey() {
+  const saved = storedPasskey();
+  if (!passkeySupported() || !saved?.credentialId) throw new Error("Device passkey belum terdaftar.");
+  const assertion = await navigator.credentials.get({
+    publicKey: {
+      challenge: randomBytes(32),
+      allowCredentials: [{
+        id: base64UrlToBytes(saved.credentialId),
+        type: "public-key",
+        transports: ["internal", "hybrid"]
+      }],
+      userVerification: "required",
+      timeout: 60000
+    }
+  });
+  if (!assertion) throw new Error("Passkey verification dibatalkan.");
+  setAuthorized(true);
+  $("#loginMessage").textContent = "STATUS // DEVICE VERIFIED";
+  await syncState({ action: "state", manual: false });
+  handleLaunchShortcut();
+}
+
+function applyPerformanceMode(mode, persist = true) {
+  const safeMode = ["visual", "balanced", "battery"].includes(mode) ? mode : "balanced";
+  state.performanceMode = safeMode;
+  document.body.classList.remove("performance-visual", "performance-balanced", "performance-battery");
+  document.body.classList.add(`performance-${safeMode}`);
+  if (persist) localStorage.setItem(PERFORMANCE_MODE_KEY, safeMode);
+  $$('input[name="performanceMode"]').forEach(input => { input.checked = input.value === safeMode; });
+  const diag = $("#diagPerformanceMode");
+  if (diag) diag.textContent = safeMode.toUpperCase();
+  if (sessionStorage.getItem(SESSION_KEY) === "1") startAutoSync();
+}
+
+function urlBase64ToUint8Array(value) {
+  return base64UrlToBytes(value);
+}
+
+async function currentPushSubscription() {
+  if (!("serviceWorker" in navigator)) return null;
+  const registration = await navigator.serviceWorker.ready;
+  return registration.pushManager?.getSubscription() || null;
+}
+
+async function refreshPushStatus() {
+  const status = $("#pushSetupStatus");
+  const diag = $("#diagPushStatus");
+  if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
+    if (status) { status.className = "settings-inline-status error"; status.textContent = "Push API tidak didukung browser ini."; }
+    if (diag) diag.textContent = "Unsupported";
+    return;
+  }
+  const subscription = await currentPushSubscription();
+  state.pushSubscription = subscription;
+  const configured = Boolean(PUSH_VAPID_PUBLIC_KEY);
+  if (status) {
+    status.className = `settings-inline-status${subscription ? " success" : configured ? "" : " error"}`;
+    status.textContent = subscription
+      ? "Web Push aktif pada perangkat ini."
+      : configured
+        ? `Ready. Notification permission: ${Notification.permission}.`
+        : "VAPID public key belum diisi di config.js.";
+  }
+  if (diag) diag.textContent = subscription ? "Subscribed" : configured ? "Not subscribed" : "VAPID not configured";
+  $("#disablePushButton").disabled = !subscription;
+  $("#enablePushButton").disabled = !configured || Boolean(subscription);
+}
+
+async function enableWebPush() {
+  if (!PUSH_VAPID_PUBLIC_KEY) throw new Error("Isi pushVapidPublicKey di config.js terlebih dahulu.");
+  const permission = await Notification.requestPermission();
+  if (permission !== "granted") throw new Error("Izin notifikasi tidak diberikan.");
+  const registration = await navigator.serviceWorker.ready;
+  let subscription = await registration.pushManager.getSubscription();
+  if (!subscription) {
+    subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(PUSH_VAPID_PUBLIC_KEY)
+    });
+  }
+  const response = await gasPostRequest("registerpush", {
+    subscription: JSON.stringify(subscription.toJSON()),
+    user_agent: navigator.userAgent.slice(0, 300)
+  });
+  if (!response?.success) throw new Error(response?.message || "Push subscription gagal disimpan.");
+  state.pushSubscription = subscription;
+  await refreshPushStatus();
+  showToast({ type: "success", title: "Web Push enabled", message: "Subscription tersimpan. Scheduled push worker dapat mengirim alert saat dashboard ditutup." });
+}
+
+async function disableWebPush() {
+  const subscription = await currentPushSubscription();
+  if (!subscription) return;
+  const endpoint = subscription.endpoint;
+  await subscription.unsubscribe();
+  await gasPostRequest("unregisterpush", { endpoint });
+  state.pushSubscription = null;
+  await refreshPushStatus();
+}
+
+async function testPersistentNotification() {
+  if (Notification.permission !== "granted") await requestDeviceNotifications();
+  const registration = await navigator.serviceWorker.ready;
+  await registration.showNotification("Endfield Protocol Test", {
+    body: "Persistent notification channel is operational.",
+    icon: "./assets/icon-192.png",
+    badge: "./assets/icon-192.png",
+    tag: "endfield-push-test",
+    data: { url: "./?view=alerts" }
+  });
+}
+
+function openRetryDb() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(RETRY_DB_NAME, 1);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(RETRY_STORE_NAME)) {
+        db.createObjectStore(RETRY_STORE_NAME, { keyPath: "id", autoIncrement: true });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function listQueuedOperations() {
+  if (!("indexedDB" in window)) return [];
+  const db = await openRetryDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(RETRY_STORE_NAME, "readonly");
+    const request = tx.objectStore(RETRY_STORE_NAME).getAll();
+    request.onsuccess = () => resolve(request.result || []);
+    request.onerror = () => reject(request.error);
+    tx.oncomplete = () => db.close();
+  });
+}
+
+async function addQueuedOperation(action, parameters = {}) {
+  if (!("indexedDB" in window)) throw new Error("IndexedDB tidak tersedia.");
+  const existing = await listQueuedOperations();
+  if (existing.some(item => item.action === action)) return existing.length;
+  const db = await openRetryDb();
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction(RETRY_STORE_NAME, "readwrite");
+    tx.objectStore(RETRY_STORE_NAME).add({ action, parameters, createdAt: new Date().toISOString(), attempts: 0 });
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error);
+  });
+  db.close();
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    if (registration.sync) await registration.sync.register("endfield-operation-retry");
+  } catch (_) {}
+  await updateRetryUi();
+  return existing.length + 1;
+}
+
+async function deleteQueuedOperation(id) {
+  const db = await openRetryDb();
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction(RETRY_STORE_NAME, "readwrite");
+    tx.objectStore(RETRY_STORE_NAME).delete(id);
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error);
+  });
+  db.close();
+}
+
+async function updateRetryUi() {
+  let count = 0;
+  try { count = (await listQueuedOperations()).length; } catch (_) {}
+  const settingsCount = $("#settingsRetryCount");
+  const diagCount = $("#diagRetryQueue");
+  if (settingsCount) settingsCount.textContent = String(count);
+  if (diagCount) diagCount.textContent = String(count);
+  const support = $("#settingsBackgroundSync");
+  if (support) support.textContent = "serviceWorker" in navigator && "SyncManager" in window ? "Supported" : "Online fallback";
+}
+
+async function processQueuedOperations() {
+  if (state.retryProcessing || !navigator.onLine || sessionStorage.getItem(SESSION_KEY) !== "1") return;
+  state.retryProcessing = true;
+  try {
+    const queue = await listQueuedOperations();
+    for (const item of queue) {
+      try {
+        if (item.action === "run") await gasRequestWithRetry("run", item.parameters || {}, 2);
+        else await gasRequestWithRetry(item.action, item.parameters || {}, 2);
+        await deleteQueuedOperation(item.id);
+      } catch (_) {
+        break;
+      }
+    }
+  } finally {
+    state.retryProcessing = false;
+    await updateRetryUi();
+  }
+}
+
+function createHistoryChart(points) {
+  const svg = $("#historySanityChart");
+  if (!svg) return;
+  if (!points.length) {
+    svg.innerHTML = '<text x="320" y="110" text-anchor="middle">NO HISTORY DATA</text>';
+    return;
+  }
+  const width = 640, height = 220, pad = 28;
+  const max = Math.max(...points.map(point => Number(point.max || 1)), 1);
+  const minTime = new Date(points[0].at).getTime();
+  const maxTime = new Date(points[points.length - 1].at).getTime();
+  const timeRange = Math.max(1, maxTime - minTime);
+  const coords = points.map(point => {
+    const x = pad + ((new Date(point.at).getTime() - minTime) / timeRange) * (width - pad * 2);
+    const y = height - pad - (Number(point.current || 0) / max) * (height - pad * 2);
+    return [x, y];
+  });
+  const line = coords.map(pair => pair.map(value => value.toFixed(1)).join(",")).join(" ");
+  const area = `${pad},${height-pad} ${line} ${width-pad},${height-pad}`;
+  svg.innerHTML = `
+    <defs><linearGradient id="historyAreaGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff344d"/><stop offset="1" stop-color="#ff344d" stop-opacity="0"/></linearGradient></defs>
+    ${[0,1,2,3,4].map(index => `<line class="grid" x1="${pad}" x2="${width-pad}" y1="${pad + index*(height-pad*2)/4}" y2="${pad + index*(height-pad*2)/4}"/>`).join("")}
+    <polygon class="area" points="${area}"/>
+    <polyline class="line" points="${line}"/>
+    ${coords.map(([x,y]) => `<circle class="dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4"/>`).join("")}
+    <text x="${pad}" y="${height-7}">${formatDateWib(points[0].at, false)}</text>
+    <text x="${width-pad}" y="${height-7}" text-anchor="end">${formatDateWib(points[points.length-1].at, false)}</text>`;
+}
+
+function renderHistory() {
+  const data = state.historyData || {};
+  const slug = $("#historyAccountSelect").value || state.selectedSlug;
+  const points = data.sanity?.[slug] || [];
+  createHistoryChart(points);
+  const latest = points.at(-1);
+  $("#historySanitySummary").textContent = latest ? `${latest.current}/${latest.max}` : "No data";
+  const checkins = (data.checkins || []).filter(item => !item.slug || item.slug === slug).slice(-30).reverse();
+  $("#historyCheckinSummary").textContent = `${checkins.filter(item => item.success).length}/${checkins.length || 0} success`;
+  $("#historyCheckinList").innerHTML = checkins.length ? checkins.map(item => `<div class="history-event${item.success ? "" : " failed"}"><span class="history-event-dot"></span><div><strong>${escapeHtml(item.message || (item.success ? "Success" : "Failed"))}</strong><small>${escapeHtml(formatDateWib(item.at, true))}</small></div><small>${item.success ? "OK" : "FAIL"}</small></div>`).join("") : '<div class="history-event"><div><strong>No check-in history</strong></div></div>';
+  const uptime = (data.uptime || []).slice(-48);
+  const successRate = uptime.length ? Math.round(uptime.filter(item => item.ok).length / uptime.length * 100) : 0;
+  $("#historyUptimeSummary").textContent = uptime.length ? `${successRate}%` : "No data";
+  $("#historyUptimeBars").innerHTML = uptime.map(item => `<span class="uptime-bar${item.ok ? "" : " failed"}" style="height:${item.ok ? 92 : 28}%" title="${escapeHtml(formatDateWib(item.at, true))}"></span>`).join("");
+}
+
+async function loadHistory() {
+  $("#historyStatus").textContent = "Loading history...";
+  try {
+    const response = await gasRequestWithRetry("history", {}, 2);
+    if (!response?.success) throw new Error(response?.message || "History unavailable");
+    state.historyData = response.history || {};
+    const select = $("#historyAccountSelect");
+    select.innerHTML = allAccountEntries().map(account => `<option value="${escapeHtml(account.slug)}">${escapeHtml(accountDisplayName(account))}</option>`).join("");
+    select.value = state.selectedSlug;
+    renderHistory();
+    $("#historyStatus").className = "reliability-status success";
+    $("#historyStatus").textContent = "History synchronized.";
+  } catch (error) {
+    $("#historyStatus").className = "reliability-status error";
+    $("#historyStatus").textContent = error?.message || "History failed.";
+  }
+}
+
+function openHistory() { closeSidebar(); setReliabilityOverlay("#historyOverlay", true); loadHistory(); }
+function closeHistory() { setReliabilityOverlay("#historyOverlay", false); }
+
+function renderTokenHealth() {
+  const rows = state.tokenHealthData?.accounts || [];
+  $("#tokenHealthList").innerHTML = rows.length ? rows.map(item => `<article class="token-health-card"><header><div><h3>${escapeHtml(item.name || item.slug)}</h3><p>UID ${escapeHtml(item.uid || "—")} • ${escapeHtml(item.server || "—")}</p></div><span class="token-health-badge ${escapeHtml(String(item.status || "failed").toLowerCase())}">${escapeHtml(item.status || "UNKNOWN")}</span></header><dl><div><dt>OAuth</dt><dd>${escapeHtml(item.oauth || "—")}</dd></div><div><dt>Player Binding</dt><dd>${escapeHtml(item.binding || "—")}</dd></div><div><dt>Checked</dt><dd>${escapeHtml(formatDateWib(item.checkedAt, true))}</dd></div><div><dt>Message</dt><dd>${escapeHtml(item.message || "Healthy")}</dd></div></dl><div class="settings-action-row"><button class="action-button" type="button" data-health-replace="${escapeHtml(item.slug)}">Replace Token</button></div></article>`).join("") : '<div class="reliability-status">No token health results.</div>';
+  $$('[data-health-replace]').forEach(button => button.addEventListener("click", () => { closeTokenHealth(); openAccountManager(button.dataset.healthReplace); }));
+}
+
+async function runTokenHealth() {
+  $("#tokenHealthStatus").textContent = "Validating OAuth and Player Binding...";
+  $("#runTokenHealth").disabled = true;
+  try {
+    const response = await gasRequestWithRetry("tokenhealth", {}, 1);
+    if (!response?.success) throw new Error(response?.message || "Token validation failed");
+    state.tokenHealthData = response;
+    renderTokenHealth();
+    $("#tokenHealthStatus").className = "reliability-status success";
+    $("#tokenHealthStatus").textContent = `Validated ${response.accounts?.length || 0} accounts.`;
+  } catch (error) {
+    $("#tokenHealthStatus").className = "reliability-status error";
+    $("#tokenHealthStatus").textContent = error?.message || "Token validation failed.";
+  } finally { $("#runTokenHealth").disabled = false; }
+}
+
+function openTokenHealth() { closeSidebar(); setReliabilityOverlay("#tokenHealthOverlay", true); }
+function closeTokenHealth() { setReliabilityOverlay("#tokenHealthOverlay", false); }
+
+async function refreshQuotaGuard() {
+  try {
+    const response = await gasRequestWithRetry("quotastatus", {}, 2);
+    if (!response?.success) throw new Error(response?.message || "Quota Guard unavailable");
+    const quota = response.quota || {};
+    ["#diagQuotaRequests", "#settingsQuotaRequests"].forEach(selector => { const element = $(selector); if (element) element.textContent = String(quota.requests || 0); });
+    ["#diagQuotaFetches", "#settingsQuotaFetches"].forEach(selector => { const element = $(selector); if (element) element.textContent = String(quota.urlFetches || 0); });
+    ["#diagQuotaFailures", "#settingsQuotaFailures"].forEach(selector => { const element = $(selector); if (element) element.textContent = String(quota.failures || 0); });
+  } catch (error) {
+    ["#diagQuotaRequests", "#diagQuotaFetches", "#diagQuotaFailures"].forEach(selector => { const element = $(selector); if (element) element.textContent = "Unavailable"; });
+  }
+}
+
+function safeDownloadJson(filename, data) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function exportSafeBackup() {
+  $("#backupStatus").textContent = "Preparing backup...";
+  try {
+    const response = await gasRequestWithRetry("exportconfig", {}, 2);
+    if (!response?.success) throw new Error(response?.message || "Export failed");
+    const backup = {
+      schema: "endfield-protocol-backup-v1",
+      exportedAt: new Date().toISOString(),
+      backend: response.config,
+      local: {
+        performanceMode: state.performanceMode,
+        selectedSlug: state.selectedSlug
+      }
+    };
+    safeDownloadJson(`endfield-backup-${new Date().toISOString().slice(0,10)}.json`, backup);
+    $("#backupStatus").className = "settings-inline-status success";
+    $("#backupStatus").textContent = "Backup downloaded. Tokens were excluded.";
+  } catch (error) {
+    $("#backupStatus").className = "settings-inline-status error";
+    $("#backupStatus").textContent = error?.message || "Export failed.";
+  }
+}
+
+async function restoreSafeBackup(file) {
+  const text = await file.text();
+  const backup = JSON.parse(text);
+  if (backup.schema !== "endfield-protocol-backup-v1") throw new Error("Backup schema tidak dikenali.");
+  const response = await gasPostRequest("restoreconfig", { config: JSON.stringify(backup.backend || {}) });
+  if (!response?.success) throw new Error(response?.message || "Restore failed");
+  if (backup.local?.performanceMode) applyPerformanceMode(backup.local.performanceMode);
+  if (backup.local?.selectedSlug) {
+    state.selectedSlug = backup.local.selectedSlug;
+    localStorage.setItem(SELECTED_ACCOUNT_KEY, state.selectedSlug);
+  }
+  if (response.state?.accounts) applyDashboardState(response.state, "manual");
+  $("#backupStatus").className = "settings-inline-status success";
+  $("#backupStatus").textContent = "Backup restored. Existing account tokens were preserved.";
+}
+
+async function openSettingsCenter() {
+  closeSidebar();
+  setReliabilityOverlay("#settingsCenterOverlay", true);
+  applyPerformanceMode(state.performanceMode, false);
+  updatePasskeyUi();
+  await Promise.allSettled([refreshPushStatus(), updateRetryUi(), refreshQuotaGuard()]);
+}
+function closeSettingsCenter() { setReliabilityOverlay("#settingsCenterOverlay", false); }
+
+function bindReliabilitySuite() {
+  $("#historyButton").addEventListener("click", openHistory);
+  $("#closeHistory").addEventListener("click", closeHistory);
+  $("#historyOverlay").addEventListener("click", event => { if (event.target === $("#historyOverlay")) closeHistory(); });
+  $("#refreshHistory").addEventListener("click", loadHistory);
+  $("#historyAccountSelect").addEventListener("change", renderHistory);
+
+  $("#tokenHealthButton").addEventListener("click", openTokenHealth);
+  $("#closeTokenHealth").addEventListener("click", closeTokenHealth);
+  $("#tokenHealthOverlay").addEventListener("click", event => { if (event.target === $("#tokenHealthOverlay")) closeTokenHealth(); });
+  $("#runTokenHealth").addEventListener("click", runTokenHealth);
+
+  $("#settingsCenterButton").addEventListener("click", openSettingsCenter);
+  $("#closeSettingsCenter").addEventListener("click", closeSettingsCenter);
+  $("#settingsCenterOverlay").addEventListener("click", event => { if (event.target === $("#settingsCenterOverlay")) closeSettingsCenter(); });
+  $$('input[name="performanceMode"]').forEach(input => input.addEventListener("change", () => applyPerformanceMode(input.value)));
+  $("#enablePushButton").addEventListener("click", () => enableWebPush().catch(error => showToast({ type:"error", title:"Push setup failed", message:error.message })));
+  $("#disablePushButton").addEventListener("click", () => disableWebPush().catch(error => showToast({ type:"error", title:"Push disable failed", message:error.message })));
+  $("#testPushButton").addEventListener("click", () => testPersistentNotification().catch(error => showToast({ type:"error", title:"Notification test failed", message:error.message })));
+  $("#registerPasskeyButton").addEventListener("click", () => registerLocalPasskey().catch(error => showToast({ type:"error", title:"Passkey registration failed", message:error.message })));
+  $("#removePasskeyButton").addEventListener("click", () => { localStorage.removeItem(PASSKEY_CREDENTIAL_KEY); updatePasskeyUi(); });
+  $("#passkeyLoginButton").addEventListener("click", () => unlockWithLocalPasskey().catch(error => { $("#loginMessage").textContent = `STATUS // ${error.message}`; }));
+  $("#exportConfigButton").addEventListener("click", exportSafeBackup);
+  $("#restoreConfigButton").addEventListener("click", () => $("#restoreConfigInput").click());
+  $("#restoreConfigInput").addEventListener("change", event => { const file = event.target.files?.[0]; if (file) restoreSafeBackup(file).catch(error => { $("#backupStatus").className="settings-inline-status error"; $("#backupStatus").textContent=error.message; }); event.target.value=""; });
+  $("#retryQueuedOperationsButton").addEventListener("click", processQueuedOperations);
+  $("#refreshQuotaButton").addEventListener("click", refreshQuotaGuard);
+  window.addEventListener("online", processQueuedOperations);
+  navigator.serviceWorker?.addEventListener(
+    "message",
+    event => {
+      if (
+        event.data?.type ===
+        "retry-queue-process"
+      ) {
+        processQueuedOperations();
+        return;
+      }
+
+      if (
+        event.data?.type ===
+        "retry-queue-updated"
+      ) {
+        updateRetryUi();
+      }
+    }
+  );
+}
+
 function bindAccountManagerAndDiagnostics() {
   $("#accountManagerButton").addEventListener("click", () => openAccountManager());
   $("#closeAccountManager").addEventListener("click", closeAccountManager);
@@ -4302,7 +4884,7 @@ function bindAccountManagerAndDiagnostics() {
   $("#bottomAccounts").addEventListener("click", () => openAccountManager());
   $("#bottomCheckin").addEventListener("click", runCheckin);
   $("#bottomAlerts").addEventListener("click", () => toggleNotificationPanel(true));
-  $("#bottomSettings").addEventListener("click", openDiagnostics);
+  $("#bottomSettings").addEventListener("click", openSettingsCenter);
 }
 
 function registerPwa() {
@@ -4446,9 +5028,13 @@ async function initialize() {
     bindConnectAccount();
     bindDeleteAccount();
     bindAccountManagerAndDiagnostics();
+    bindReliabilitySuite();
     loadRequestMetrics();
     registerPwa();
     renderNotificationCenter();
+    applyPerformanceMode(state.performanceMode, false);
+    updatePasskeyUi();
+    updateRetryUi();
 
     updateBootSequence(
       22,
@@ -4490,6 +5076,8 @@ async function initialize() {
         action: "state",
         manual: false
       });
+
+      await processQueuedOperations();
 
       updateBootSequence(
         94,

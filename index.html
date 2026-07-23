@@ -154,6 +154,59 @@
       <path d="M17 7h3v3"></path>
     </symbol>
 
+    <symbol id="nx-history" viewBox="0 0 24 24">
+      <path d="M4 4v5h5"></path>
+      <path d="M5.4 8.2A8 8 0 1 1 4 13"></path>
+      <path d="M12 7v5l3 2"></path>
+    </symbol>
+
+    <symbol id="nx-shield" viewBox="0 0 24 24">
+      <path d="M12 2 20 5v6c0 5.2-3.4 8.8-8 11-4.6-2.2-8-5.8-8-11V5l8-3Z"></path>
+      <path d="m8.5 12 2.2 2.2 4.8-5"></path>
+    </symbol>
+
+    <symbol id="nx-key" viewBox="0 0 24 24">
+      <circle cx="8" cy="12" r="4"></circle>
+      <path d="M12 12h9M17 12v3M20 12v2"></path>
+    </symbol>
+
+    <symbol id="nx-backup" viewBox="0 0 24 24">
+      <path d="M5 3h11l3 3v15H5V3Z"></path>
+      <path d="M8 3v6h8V3M8 21v-7h8v7"></path>
+    </symbol>
+
+    <symbol id="nx-upload" viewBox="0 0 24 24">
+      <path d="M12 16V4"></path>
+      <path d="m7 9 5-5 5 5"></path>
+      <path d="M4 15v5h16v-5"></path>
+    </symbol>
+
+    <symbol id="nx-gauge" viewBox="0 0 24 24">
+      <path d="M4 18a8 8 0 1 1 16 0"></path>
+      <path d="m12 14 4-5"></path>
+      <path d="M7 18h10"></path>
+    </symbol>
+
+    <symbol id="nx-fingerprint" viewBox="0 0 24 24">
+      <path d="M8 11a4 4 0 0 1 8 0c0 4-1 8-3 11"></path>
+      <path d="M5 11a7 7 0 0 1 14 0c0 3-.4 6-1.5 9"></path>
+      <path d="M11 14c0 3-.3 5-1.3 7"></path>
+      <path d="M8 14c0 2-.2 4-.8 5.5"></path>
+      <path d="M3 11a9 9 0 0 1 18 0"></path>
+    </symbol>
+
+    <symbol id="nx-push" viewBox="0 0 24 24">
+      <path d="M18.5 9a6.5 6.5 0 0 0-13 0c0 6-2.5 6.5-2.5 8.5h18c0-2-2.5-2.5-2.5-8.5Z"></path>
+      <path d="M9.5 21h5"></path>
+      <path d="m16 4 2-2 2 2"></path>
+    </symbol>
+
+    <symbol id="nx-battery" viewBox="0 0 24 24">
+      <path d="M3 7h16v10H3V7Z"></path>
+      <path d="M21 10v4"></path>
+      <path d="M6 10h7v4H6v-4Z"></path>
+    </symbol>
+
     <symbol id="nx-star" viewBox="0 0 24 24">
       <path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z"></path>
     </symbol>
@@ -289,6 +342,21 @@
           <span>System Diagnostics</span>
         </button>
 
+        <button id="historyButton" class="nav-button" type="button">
+          <span class="nav-icon"><svg class="nexus-icon" aria-hidden="true"><use href="#nx-history"></use></svg></span>
+          <span>History Center</span>
+        </button>
+
+        <button id="tokenHealthButton" class="nav-button" type="button">
+          <span class="nav-icon"><svg class="nexus-icon" aria-hidden="true"><use href="#nx-shield"></use></svg></span>
+          <span>Token Health</span>
+        </button>
+
+        <button id="settingsCenterButton" class="nav-button" type="button">
+          <span class="nav-icon"><svg class="nexus-icon" aria-hidden="true"><use href="#nx-settings"></use></svg></span>
+          <span>Reliability Settings</span>
+        </button>
+
         <div class="nav-label">Actions</div>
 
         <button id="sidebarCheckinButton" class="nav-button" type="button">
@@ -389,7 +457,7 @@
 
               <div class="page-title-row">
                 <h1>Command Nexus</h1>
-                <span class="badge">Interface 2.6</span>
+                <span class="badge">Reliability 3.1</span>
               </div>
 
               <p>
@@ -810,7 +878,7 @@
         <button id="closeDiagnostics" class="utility-close" type="button" aria-label="Tutup"><svg class="nexus-icon"><use href="#nx-close"></use></svg></button>
       </header>
       <div class="diagnostics-grid">
-        <div><span>Frontend version</span><strong id="diagFrontendVersion">30.0</strong></div>
+        <div><span>Frontend version</span><strong id="diagFrontendVersion">31.0</strong></div>
         <div><span>GAS API version</span><strong id="diagApiVersion">Checking...</strong></div>
         <div><span>Available actions</span><strong id="diagActions">—</strong></div>
         <div><span>Last successful request</span><strong id="diagLastSuccess">—</strong></div>
@@ -819,11 +887,128 @@
         <div><span>Browser storage</span><strong id="diagStorage">—</strong></div>
         <div><span>Selected token health</span><strong id="diagTokenStatus">—</strong></div>
         <div><span>PWA status</span><strong id="diagPwaStatus">—</strong></div>
+        <div><span>Tracked URL Fetch today</span><strong id="diagQuotaFetches">—</strong></div>
+        <div><span>API requests today</span><strong id="diagQuotaRequests">—</strong></div>
+        <div><span>Failures today</span><strong id="diagQuotaFailures">—</strong></div>
+        <div><span>Offline retry queue</span><strong id="diagRetryQueue">—</strong></div>
+        <div><span>Push subscription</span><strong id="diagPushStatus">—</strong></div>
+        <div><span>Performance mode</span><strong id="diagPerformanceMode">—</strong></div>
       </div>
       <div class="diagnostics-actions">
         <button id="diagnosticsRefresh" class="action-button" type="button">Run Diagnostics</button>
         <button id="installPwaButton" class="action-button primary" type="button" hidden><svg class="nexus-icon"><use href="#nx-download"></use></svg>Install App</button>
         <button id="clearAppCacheButton" class="action-button" type="button">Clear App Cache</button>
+      </div>
+    </section>
+  </div>
+
+  <div id="historyOverlay" class="utility-overlay" hidden>
+    <section class="utility-modal reliability-modal history-modal" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
+      <header class="utility-header">
+        <div><span>ACCOUNT ANALYTICS</span><h2 id="historyTitle">History Center</h2></div>
+        <button id="closeHistory" class="utility-close" type="button" aria-label="Tutup"><svg class="nexus-icon"><use href="#nx-close"></use></svg></button>
+      </header>
+      <div class="reliability-toolbar">
+        <label>Account<select id="historyAccountSelect"></select></label>
+        <button id="refreshHistory" class="action-button" type="button">Refresh History</button>
+      </div>
+      <div id="historyStatus" class="reliability-status">Waiting for history data.</div>
+      <div class="history-grid">
+        <article class="history-card history-card-wide">
+          <header><span>24H ENERGY TREND</span><strong id="historySanitySummary">—</strong></header>
+          <svg id="historySanityChart" class="history-chart" viewBox="0 0 640 220" role="img" aria-label="Sanity history chart"></svg>
+        </article>
+        <article class="history-card">
+          <header><span>30D CHECK-IN</span><strong id="historyCheckinSummary">—</strong></header>
+          <div id="historyCheckinList" class="history-event-list"></div>
+        </article>
+        <article class="history-card">
+          <header><span>API UPTIME</span><strong id="historyUptimeSummary">—</strong></header>
+          <div id="historyUptimeBars" class="uptime-bars"></div>
+        </article>
+      </div>
+    </section>
+  </div>
+
+  <div id="tokenHealthOverlay" class="utility-overlay" hidden>
+    <section class="utility-modal reliability-modal token-health-modal" role="dialog" aria-modal="true" aria-labelledby="tokenHealthTitle">
+      <header class="utility-header">
+        <div><span>AUTHENTICATION INTEGRITY</span><h2 id="tokenHealthTitle">Token Health Center</h2></div>
+        <button id="closeTokenHealth" class="utility-close" type="button" aria-label="Tutup"><svg class="nexus-icon"><use href="#nx-close"></use></svg></button>
+      </header>
+      <div class="reliability-toolbar">
+        <p>Validasi manual dapat memakai beberapa request API. Jalankan saat diperlukan.</p>
+        <button id="runTokenHealth" class="action-button primary" type="button">Validate All Tokens</button>
+      </div>
+      <div id="tokenHealthStatus" class="reliability-status">Select validation to inspect linked sessions.</div>
+      <div id="tokenHealthList" class="token-health-list"></div>
+    </section>
+  </div>
+
+  <div id="settingsCenterOverlay" class="utility-overlay" hidden>
+    <section class="utility-modal reliability-modal settings-center-modal" role="dialog" aria-modal="true" aria-labelledby="settingsCenterTitle">
+      <header class="utility-header">
+        <div><span>RELIABILITY SUITE</span><h2 id="settingsCenterTitle">Settings & Resilience</h2></div>
+        <button id="closeSettingsCenter" class="utility-close" type="button" aria-label="Tutup"><svg class="nexus-icon"><use href="#nx-close"></use></svg></button>
+      </header>
+
+      <div class="settings-section-grid">
+        <article class="settings-module">
+          <div class="settings-module-head"><svg class="nexus-icon"><use href="#nx-gauge"></use></svg><div><strong>Performance Mode</strong><span>Control animation and sync frequency.</span></div></div>
+          <div class="performance-mode-grid">
+            <label><input type="radio" name="performanceMode" value="visual"><span><strong>Visual</strong><small>5s sync • full motion</small></span></label>
+            <label><input type="radio" name="performanceMode" value="balanced"><span><strong>Balanced</strong><small>10s sync • light motion</small></span></label>
+            <label><input type="radio" name="performanceMode" value="battery"><span><strong>Battery Saver</strong><small>30s sync • motion off</small></span></label>
+          </div>
+        </article>
+
+        <article class="settings-module">
+          <div class="settings-module-head"><svg class="nexus-icon"><use href="#nx-push"></use></svg><div><strong>True Web Push</strong><span>Receive alerts after the dashboard is closed.</span></div></div>
+          <div id="pushSetupStatus" class="settings-inline-status">Checking browser support...</div>
+          <div class="settings-action-row">
+            <button id="enablePushButton" class="action-button primary" type="button">Enable Push</button>
+            <button id="disablePushButton" class="action-button" type="button">Disable</button>
+            <button id="testPushButton" class="action-button" type="button">Test Notification</button>
+          </div>
+        </article>
+
+        <article class="settings-module">
+          <div class="settings-module-head"><svg class="nexus-icon"><use href="#nx-fingerprint"></use></svg><div><strong>Device Passkey Unlock</strong><span>Use fingerprint, face unlock, or device PIN as a local convenience unlock.</span></div></div>
+          <div id="passkeyStatus" class="settings-inline-status">Checking WebAuthn...</div>
+          <div class="settings-action-row">
+            <button id="registerPasskeyButton" class="action-button primary" type="button">Register Device</button>
+            <button id="removePasskeyButton" class="action-button" type="button">Remove Passkey</button>
+          </div>
+        </article>
+
+        <article class="settings-module">
+          <div class="settings-module-head"><svg class="nexus-icon"><use href="#nx-backup"></use></svg><div><strong>Backup & Restore</strong><span>Export account order, names, notification rules, and UI settings. Tokens are excluded.</span></div></div>
+          <input id="restoreConfigInput" type="file" accept="application/json,.json" hidden>
+          <div class="settings-action-row">
+            <button id="exportConfigButton" class="action-button primary" type="button">Export Backup</button>
+            <button id="restoreConfigButton" class="action-button" type="button">Restore Backup</button>
+          </div>
+          <div id="backupStatus" class="settings-inline-status">No backup operation running.</div>
+        </article>
+
+        <article class="settings-module">
+          <div class="settings-module-head"><svg class="nexus-icon"><use href="#nx-sync"></use></svg><div><strong>Background Retry</strong><span>Queue Check-in and Sync operations while offline.</span></div></div>
+          <div class="retry-status-grid">
+            <div><span>Queued operations</span><strong id="settingsRetryCount">0</strong></div>
+            <div><span>Background Sync</span><strong id="settingsBackgroundSync">Checking</strong></div>
+          </div>
+          <button id="retryQueuedOperationsButton" class="action-button" type="button">Retry Queue Now</button>
+        </article>
+
+        <article class="settings-module">
+          <div class="settings-module-head"><svg class="nexus-icon"><use href="#nx-gauge"></use></svg><div><strong>Quota Guard</strong><span>Tracked usage is an application estimate, not Google's official remaining quota.</span></div></div>
+          <div class="quota-mini-grid">
+            <div><span>Requests</span><strong id="settingsQuotaRequests">—</strong></div>
+            <div><span>URL Fetch</span><strong id="settingsQuotaFetches">—</strong></div>
+            <div><span>Failures</span><strong id="settingsQuotaFailures">—</strong></div>
+          </div>
+          <button id="refreshQuotaButton" class="action-button" type="button">Refresh Quota Guard</button>
+        </article>
       </div>
     </section>
   </div>
@@ -1216,6 +1401,11 @@
         <span>Authorize Session</span>
       </button>
 
+      <button id="passkeyLoginButton" class="passkey-login-button" type="button" hidden>
+        <svg class="nexus-icon" aria-hidden="true"><use href="#nx-fingerprint"></use></svg>
+        <span>Unlock with Device Passkey</span>
+      </button>
+
       <div id="loginMessage"
            class="login-message">
         STATUS // AWAITING AUTHORIZATION
@@ -1228,7 +1418,7 @@
     </form>
   </div>
 
-  <script src="./config.js?v=20260724-complete30"></script>
-  <script src="./dashboard.js?v=20260724-complete30"></script>
+  <script src="./config.js?v=20260724-reliability31"></script>
+  <script src="./dashboard.js?v=20260724-reliability31"></script>
 </body>
 </html>
