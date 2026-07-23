@@ -1085,7 +1085,7 @@ function getNotificationIconSvg(type) {
   return getNexusIconSvg(
     type === "energy"
       ? "energy"
-      : "mission"
+      : "daily-check"
   );
 }
 

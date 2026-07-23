@@ -6904,3 +6904,20 @@ body.delete-account-open {
     padding-inline: 5px;
   }
 }
+
+
+.endfield-nexus-2026
+.daily-check-icon .nexus-icon {
+  width: 23px;
+  height: 23px;
+  stroke-width: 1.75;
+}
+
+.endfield-nexus-2026
+.action-button .button-svg-icon
+use[href="#nx-daily-check"],
+.endfield-nexus-2026
+.nav-button .nav-icon
+use[href="#nx-daily-check"] {
+  pointer-events: none;
+}

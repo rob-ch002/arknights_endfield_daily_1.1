@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap"
         rel="stylesheet">
-  <link rel="stylesheet" href="./dashboard.css?v=20260724-mobile28">
+  <link rel="stylesheet" href="./dashboard.css?v=20260724-daily29">
 </head>
 
 <body class="endfield-nexus-2026">
@@ -45,6 +45,13 @@
       <path d="M5 4h14a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"></path>
       <path d="M7 2v4M17 2v4M3 9h18"></path>
       <path d="m8 15 2.3 2.3L16.8 11"></path>
+    </symbol>
+
+    <symbol id="nx-daily-check" viewBox="0 0 24 24">
+      <path d="M6 3h12a2 2 0 0 1 2 2v15H4V5a2 2 0 0 1 2-2Z"></path>
+      <path d="M8 3V1M16 3V1M4 8h16"></path>
+      <path d="m8 14 2.4 2.4L16.8 10"></path>
+      <path d="M7 20h10"></path>
     </symbol>
 
     <symbol id="nx-sync" viewBox="0 0 24 24">
@@ -222,7 +229,7 @@
         <div class="nav-label">Actions</div>
 
         <button id="sidebarCheckinButton" class="nav-button" type="button">
-          <span class="nav-icon"><svg class="nexus-icon" aria-hidden="true"><use href="#nx-check"></use></svg></span>
+          <span class="nav-icon"><svg class="nexus-icon" aria-hidden="true"><use href="#nx-daily-check"></use></svg></span>
           <span>Check-in</span>
         </button>
 
@@ -359,7 +366,7 @@
             <button id="checkinButton"
                     class="action-button primary"
                     type="button">
-              <span class="button-svg-icon"><svg class="nexus-icon" aria-hidden="true"><use href="#nx-check"></use></svg></span>
+              <span class="button-svg-icon"><svg class="nexus-icon" aria-hidden="true"><use href="#nx-daily-check"></use></svg></span>
               <span>Execute Check-in</span>
             </button>
 
@@ -528,8 +535,10 @@
               </header>
 
               <div class="activity-body">
-                <div class="feature-icon activity-icon" aria-hidden="true">
-                  <svg class="nexus-icon" aria-hidden="true"><use href="#nx-mission"></use></svg>
+                <div class="feature-icon activity-icon daily-check-icon" aria-hidden="true">
+                  <svg class="nexus-icon" aria-hidden="true">
+                    <use href="#nx-daily-check"></use>
+                  </svg>
                 </div>
 
                 <div class="task-block task-daily">
@@ -1042,7 +1051,7 @@
     </form>
   </div>
 
-  <script src="./config.js?v=20260724-mobile28"></script>
-  <script src="./dashboard.js?v=20260724-mobile28"></script>
+  <script src="./config.js?v=20260724-daily29"></script>
+  <script src="./dashboard.js?v=20260724-daily29"></script>
 </body>
 </html>
