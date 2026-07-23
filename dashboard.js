@@ -23,7 +23,7 @@ const DEVICE_NOTIFICATION_ICON =
   "https://raw.githubusercontent.com/Yue-plus/endfield_icons/main/svg/endfield-industries.svg";
 const ACCOUNT_TOKEN_API_URL =
   "https://web-api.gryphline.com/cookie_store/account_token";
-const FRONTEND_VERSION = "31.0";
+const FRONTEND_VERSION = "31.1";
 const REQUEST_METRICS_KEY = "endfield_request_metrics_v1";
 const LAST_CHECKIN_KEY = "endfield_last_checkin_v1";
 const PERFORMANCE_MODE_KEY = "endfield_performance_mode_v1";
@@ -4503,16 +4503,38 @@ async function refreshPushStatus() {
   }
   const subscription = await currentPushSubscription();
   state.pushSubscription = subscription;
-  const configured = Boolean(PUSH_VAPID_PUBLIC_KEY);
+  const configured =
+    Boolean(
+      PUSH_VAPID_PUBLIC_KEY &&
+      PUSH_VAPID_PUBLIC_KEY.length >= 80
+    );
+
   if (status) {
-    status.className = `settings-inline-status${subscription ? " success" : configured ? "" : " error"}`;
-    status.textContent = subscription
-      ? "Web Push aktif pada perangkat ini."
-      : configured
-        ? `Ready. Notification permission: ${Notification.permission}.`
-        : "VAPID public key belum diisi di config.js.";
+    status.className =
+      `settings-inline-status${
+        subscription
+          ? " success"
+          : configured
+            ? ""
+            : " error"
+      }`;
+
+    status.textContent =
+      subscription
+        ? "Web Push aktif pada perangkat ini."
+        : configured
+          ? `VAPID ready • ${PUSH_VAPID_PUBLIC_KEY.slice(0, 8)}… • Permission: ${Notification.permission}.`
+          : `VAPID belum terbaca • Config ${String(CONFIG.configVersion || "unknown")} • hapus cache aplikasi.`;
   }
-  if (diag) diag.textContent = subscription ? "Subscribed" : configured ? "Not subscribed" : "VAPID not configured";
+
+  if (diag) {
+    diag.textContent =
+      subscription
+        ? "Subscribed"
+        : configured
+          ? `Ready (${String(CONFIG.configVersion || "unknown")})`
+          : "VAPID not loaded";
+  }
   $("#disablePushButton").disabled = !subscription;
   $("#enablePushButton").disabled = !configured || Boolean(subscription);
 }
@@ -4889,7 +4911,24 @@ function bindAccountManagerAndDiagnostics() {
 
 function registerPwa() {
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("./sw.js").then(() => { state.pwaRegistered = true; }).catch(() => { state.pwaRegistered = false; });
+    navigator.serviceWorker
+      .register(
+        "./sw.js?v=31.1",
+        {
+          updateViaCache: "none"
+        }
+      )
+      .then(async registration => {
+        state.pwaRegistered = true;
+
+        try {
+          await registration.update();
+        } catch (_) {
+        }
+      })
+      .catch(() => {
+        state.pwaRegistered = false;
+      });
   }
   window.addEventListener("beforeinstallprompt", event => {
     event.preventDefault();

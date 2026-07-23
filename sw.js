@@ -1,105 +1,269 @@
 "use strict";
 
-const CACHE_NAME = "endfield-protocol-v31";
+const CACHE_NAME = "endfield-protocol-v31-1";
 const OFFLINE_URL = "./offline.html";
-const SHELL = [
-  "./",
-  "./index.html",
-  "./dashboard.css",
-  "./dashboard.js",
-  "./config.js",
-  "./manifest.webmanifest",
+
+const STATIC_SHELL = [
   "./offline.html",
+  "./manifest.webmanifest",
   "./assets/icon-192.png",
   "./assets/icon-512.png",
   "./assets/icon.svg"
 ];
 
+const MUTABLE_PATHS = new Set([
+  "/index.html",
+  "/config.js",
+  "/dashboard.js",
+  "/dashboard.css"
+]);
+
 self.addEventListener("install", event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
+  event.waitUntil(
+    caches
+      .open(CACHE_NAME)
+      .then(cache => cache.addAll(STATIC_SHELL))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener("activate", event => {
   event.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))))
+    caches
+      .keys()
+      .then(keys =>
+        Promise.all(
+          keys
+            .filter(key => key !== CACHE_NAME)
+            .map(key => caches.delete(key))
+        )
+      )
       .then(() => self.clients.claim())
   );
 });
 
+async function networkFirst(request, fallbackRequest = request) {
+  const cache = await caches.open(CACHE_NAME);
+
+  try {
+    const response = await fetch(request, {
+      cache: "no-store"
+    });
+
+    if (response && response.ok) {
+      await cache.put(request, response.clone());
+    }
+
+    return response;
+  } catch (_) {
+    return (
+      (await cache.match(request)) ||
+      (await caches.match(fallbackRequest))
+    );
+  }
+}
+
+async function staleWhileRevalidate(request) {
+  const cache = await caches.open(CACHE_NAME);
+  const cached = await cache.match(request);
+
+  const networkPromise = fetch(request)
+    .then(async response => {
+      if (response && response.ok) {
+        await cache.put(request, response.clone());
+      }
+
+      return response;
+    })
+    .catch(() => cached);
+
+  return cached || networkPromise;
+}
+
 self.addEventListener("fetch", event => {
-  if (event.request.method !== "GET") return;
+  if (event.request.method !== "GET") {
+    return;
+  }
+
   const url = new URL(event.request.url);
-  if (url.origin !== self.location.origin) return;
+
+  if (url.origin !== self.location.origin) {
+    return;
+  }
 
   if (event.request.mode === "navigate") {
     event.respondWith(
-      fetch(event.request)
-        .then(response => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put("./index.html", copy));
-          return response;
-        })
-        .catch(async () => (await caches.match("./index.html")) || caches.match(OFFLINE_URL))
+      networkFirst(
+        event.request,
+        "./offline.html"
+      )
+    );
+    return;
+  }
+
+  const normalizedPath =
+    url.pathname.endsWith("/")
+      ? "/index.html"
+      : url.pathname.replace(
+          self.registration.scope
+            ? new URL(self.registration.scope).pathname.replace(/\/$/, "")
+            : "",
+          ""
+        );
+
+  const mutable =
+    MUTABLE_PATHS.has(normalizedPath) ||
+    /\/(config|dashboard)\.(js|css)$/.test(url.pathname);
+
+  if (mutable) {
+    event.respondWith(
+      networkFirst(event.request)
     );
     return;
   }
 
   event.respondWith(
-    caches.match(event.request).then(cached => {
-      const network = fetch(event.request)
-        .then(response => {
-          if (response.ok) caches.open(CACHE_NAME).then(cache => cache.put(event.request, response.clone()));
-          return response;
-        })
-        .catch(() => cached);
-      return cached || network;
-    })
+    staleWhileRevalidate(event.request)
   );
 });
 
 self.addEventListener("push", event => {
   let data = {};
-  try { data = event.data ? event.data.json() : {}; } catch (_) { data = { body: event.data?.text() || "New Endfield alert" }; }
-  const title = data.title || "Endfield Protocol";
+
+  try {
+    data =
+      event.data
+        ? event.data.json()
+        : {};
+  } catch (_) {
+    data = {
+      body:
+        event.data?.text() ||
+        "New Endfield alert"
+    };
+  }
+
+  const title =
+    data.title ||
+    "Endfield Protocol";
+
   const options = {
-    body: data.body || data.message || "New account notification.",
-    icon: data.icon || "./assets/icon-192.png",
-    badge: data.badge || "./assets/icon-192.png",
-    tag: data.tag || `endfield-${Date.now()}`,
-    renotify: Boolean(data.renotify),
-    data: { url: data.url || "./?view=alerts", ...data.data },
+    body:
+      data.body ||
+      data.message ||
+      "New account notification.",
+    icon:
+      data.icon ||
+      "./assets/icon-192.png",
+    badge:
+      data.badge ||
+      "./assets/icon-192.png",
+    tag:
+      data.tag ||
+      `endfield-${Date.now()}`,
+    renotify:
+      Boolean(data.renotify),
+    data: {
+      url:
+        data.url ||
+        "./?view=alerts",
+      ...data.data
+    },
     actions: [
-      { action: "open", title: "Open Dashboard" },
-      { action: "dismiss", title: "Dismiss" }
+      {
+        action: "open",
+        title: "Open Dashboard"
+      },
+      {
+        action: "dismiss",
+        title: "Dismiss"
+      }
     ]
   };
-  event.waitUntil(self.registration.showNotification(title, options));
+
+  event.waitUntil(
+    self.registration.showNotification(
+      title,
+      options
+    )
+  );
 });
 
 self.addEventListener("notificationclick", event => {
   event.notification.close();
-  if (event.action === "dismiss") return;
-  const targetUrl = new URL(event.notification.data?.url || "./", self.location.origin).href;
+
+  if (event.action === "dismiss") {
+    return;
+  }
+
+  const targetUrl =
+    new URL(
+      event.notification.data?.url ||
+      "./",
+      self.location.origin
+    ).href;
+
   event.waitUntil(
-    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(clients => {
-      const existing = clients.find(client => client.url.startsWith(self.location.origin));
-      if (existing) { existing.navigate(targetUrl); return existing.focus(); }
-      return self.clients.openWindow(targetUrl);
-    })
+    self.clients
+      .matchAll({
+        type: "window",
+        includeUncontrolled: true
+      })
+      .then(clients => {
+        const existing =
+          clients.find(client =>
+            client.url.startsWith(
+              self.location.origin
+            )
+          );
+
+        if (existing) {
+          existing.navigate(targetUrl);
+          return existing.focus();
+        }
+
+        return self.clients.openWindow(
+          targetUrl
+        );
+      })
   );
 });
 
 function openRetryDb() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open("endfield_retry_queue_v1", 1);
-    request.onupgradeneeded = () => {
-      const db = request.result;
-      if (!db.objectStoreNames.contains("operations")) db.createObjectStore("operations", { keyPath: "id", autoIncrement: true });
-    };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
+  return new Promise(
+    (resolve, reject) => {
+      const request =
+        indexedDB.open(
+          "endfield_retry_queue_v1",
+          1
+        );
+
+      request.onupgradeneeded =
+        () => {
+          const db =
+            request.result;
+
+          if (
+            !db.objectStoreNames
+              .contains("operations")
+          ) {
+            db.createObjectStore(
+              "operations",
+              {
+                keyPath: "id",
+                autoIncrement: true
+              }
+            );
+          }
+        };
+
+      request.onsuccess =
+        () => resolve(request.result);
+
+      request.onerror =
+        () => reject(request.error);
+    }
+  );
 }
 
 async function retryQueueBestEffort() {
@@ -122,5 +286,12 @@ async function retryQueueBestEffort() {
 }
 
 self.addEventListener("sync", event => {
-  if (event.tag === "endfield-operation-retry") event.waitUntil(retryQueueBestEffort());
+  if (
+    event.tag ===
+    "endfield-operation-retry"
+  ) {
+    event.waitUntil(
+      retryQueueBestEffort()
+    );
+  }
 });
