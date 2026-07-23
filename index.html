@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap"
         rel="stylesheet">
-  <link rel="stylesheet" href="./dashboard.css?v=20260724-email27">
+  <link rel="stylesheet" href="./dashboard.css?v=20260724-mobile28">
 </head>
 
 <body class="endfield-nexus-2026">
@@ -122,18 +122,6 @@
       <circle cx="12" cy="12" r="9"></circle>
       <path d="M12 11v6M12 7h.01"></path>
     </symbol>
-
-    <symbol id="nx-eye" viewBox="0 0 24 24">
-      <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"></path>
-      <circle cx="12" cy="12" r="2.7"></circle>
-    </symbol>
-
-    <symbol id="nx-eye-off" viewBox="0 0 24 24">
-      <path d="M3 3l18 18"></path>
-      <path d="M10.6 6.2A9.9 9.9 0 0 1 12 6c6 0 9.5 6 9.5 6a15 15 0 0 1-2.2 2.9"></path>
-      <path d="M6.1 6.1C3.8 7.7 2.5 12 2.5 12s3.5 6 9.5 6a9.7 9.7 0 0 0 3-.5"></path>
-      <path d="M10.1 10.1a2.7 2.7 0 0 0 3.8 3.8"></path>
-    </symbol>
   </svg>
   <div
     id="bootOverlay"
@@ -142,12 +130,15 @@
     <section class="boot-terminal">
       <div class="boot-brand">
         <span class="boot-logo">
-          <svg class="nexus-icon nexus-brand-mark" aria-hidden="true"><use href="#nx-nexus"></use></svg>
+          <img
+            src="https://raw.githubusercontent.com/Yue-plus/endfield_icons/main/svg/endfield-industries.svg"
+            alt="Endfield Industries"
+            referrerpolicy="no-referrer">
         </span>
 
         <div>
           <small>ENDFIELD INDUSTRIES</small>
-          <strong>COMMAND NEXUS</strong>
+          <strong>ENDFIELD PROTOCOL</strong>
         </div>
       </div>
 
@@ -169,7 +160,7 @@
       </div>
 
       <div class="boot-progress-meta">
-        <span>ENDFIELD/NEXUS/BOOT</span>
+        <span>ENDFIELD/PROTOCOL/BOOT</span>
         <strong id="bootProgressValue">0%</strong>
       </div>
 
@@ -187,13 +178,26 @@
     <aside id="sidebar" class="sidebar">
       <div class="brand">
         <div class="brand-logo">
-          <svg class="nexus-icon nexus-brand-mark" aria-hidden="true"><use href="#nx-nexus"></use></svg>
+          <img
+            src="https://raw.githubusercontent.com/Yue-plus/endfield_icons/main/svg/endfield-industries.svg"
+            alt="Endfield Industries"
+            referrerpolicy="no-referrer">
         </div>
 
         <div class="brand-copy">
-          <span class="brand-title">Endfield <span class="brand-slash">//</span> Nexus</span>
-          <span class="brand-beta">2026</span>
+          <span class="brand-title">Endfield <span class="brand-slash">//</span> Protocol</span>
+          <span class="brand-beta">2.6</span>
         </div>
+
+        <button
+          id="sidebarCloseButton"
+          class="sidebar-close-button"
+          type="button"
+          aria-label="Tutup sidebar">
+          <svg class="nexus-icon" aria-hidden="true">
+            <use href="#nx-close"></use>
+          </svg>
+        </button>
       </div>
 
       <nav class="sidebar-nav">
@@ -236,17 +240,42 @@
       </div>
     </aside>
 
+    <button
+      id="sidebarBackdrop"
+      class="sidebar-backdrop"
+      type="button"
+      aria-label="Tutup menu"
+      tabindex="-1"></button>
+
     <section class="main-shell">
       <header class="topbar">
         <div class="topbar-title">
           <button id="mobileMenuButton"
                   class="mobile-menu-button"
                   type="button"
-                  aria-label="Buka menu">
-            <svg class="nexus-icon" aria-hidden="true"><use href="#nx-menu"></use></svg>
+                  aria-label="Buka menu"
+                  aria-expanded="false">
+            <svg class="nexus-icon" aria-hidden="true">
+              <use href="#nx-menu"></use>
+            </svg>
           </button>
-          <span class="topbar-path">COMMAND NEXUS</span>
-          <strong>Operator Dashboard</strong>
+
+          <div class="mobile-topbar-brand">
+            <img
+              src="https://raw.githubusercontent.com/Yue-plus/endfield_icons/main/svg/endfield-industries.svg"
+              alt=""
+              referrerpolicy="no-referrer">
+
+            <div>
+              <strong>Endfield Protocol</strong>
+              <small>Operator Dashboard</small>
+            </div>
+          </div>
+
+          <div class="desktop-topbar-copy">
+            <span class="topbar-path">ENDFIELD PROTOCOL</span>
+            <strong>Operator Dashboard</strong>
+          </div>
         </div>
 
         <div class="topbar-actions">
@@ -634,7 +663,7 @@
       <header class="connect-account-header">
         <div>
           <span class="connect-account-kicker">
-            GRYPHLINE ACCOUNT LINK
+            OFFICIAL SESSION LINK
           </span>
           <h2 id="connectAccountTitle">
             Connect Account
@@ -651,154 +680,125 @@
       </header>
 
       <div class="connect-account-body">
-        <div class="auth-flow-banner">
-          <div class="auth-flow-banner-icon">
-            <svg class="nexus-icon" aria-hidden="true">
-              <use href="#nx-link"></use>
-            </svg>
-          </div>
-
-          <div>
-            <span>AUTHENTICATION FLOW 0</span>
-            <strong>Email / Password Login</strong>
-            <p>
-              Experimental integration based on the unofficial
-              SKPORT API documentation.
-            </p>
-          </div>
-
-          <span class="auth-flow-badge">
-            EXPERIMENTAL
-          </span>
-        </div>
-
-        <form
-          id="connectAccountForm"
-          class="email-auth-form"
-          autocomplete="off">
-
-          <div class="email-auth-grid">
-            <div class="email-auth-field email-auth-field-wide">
-              <label for="gryphlineEmail">
-                Gryphline Email
-              </label>
-
-              <input
-                id="gryphlineEmail"
-                class="email-auth-input"
-                type="email"
-                inputmode="email"
-                autocomplete="username"
-                maxlength="254"
-                placeholder="operator@example.com"
-                required>
+        <ol class="connect-account-steps">
+          <li>
+            <span class="connect-step-number">01</span>
+            <div>
+              <strong>Masuk ke situs resmi</strong>
+              <p>
+                Buka situs resmi Endfield dan pastikan akun
+                Gryphline sudah login.
+              </p>
+              <a
+                class="connect-external-link"
+                href="https://endfield.gryphline.com/"
+                target="_blank"
+                rel="noopener noreferrer">
+                Buka situs resmi
+                <svg class="nexus-icon" aria-hidden="true"><use href="#nx-external"></use></svg>
+              </a>
             </div>
+          </li>
 
-            <div class="email-auth-field email-auth-field-wide">
-              <label for="gryphlinePassword">
-                Gryphline Password
-              </label>
+          <li>
+            <span class="connect-step-number">02</span>
+            <div>
+              <strong>Salin respons account_token</strong>
+              <p>
+                Setelah login, buka endpoint resmi berikut dan
+                salin seluruh respons yang terlihat.
+              </p>
+              <button
+                id="openAccountTokenApi"
+                class="connect-external-link connect-api-button"
+                type="button">
+                Buka API & Salin Otomatis
+                <svg class="nexus-icon" aria-hidden="true"><use href="#nx-external"></use></svg>
+              </button>
 
-              <div class="email-auth-password-wrap">
-                <input
-                  id="gryphlinePassword"
-                  class="email-auth-input"
-                  type="password"
-                  autocomplete="current-password"
-                  maxlength="256"
-                  placeholder="Masukkan password"
-                  required>
-
-                <button
-                  id="toggleGryphlinePassword"
-                  class="email-auth-password-toggle"
-                  type="button"
-                  aria-label="Tampilkan password">
-                  <svg class="nexus-icon password-show-icon" aria-hidden="true">
-                    <use href="#nx-eye"></use>
-                  </svg>
-                  <svg class="nexus-icon password-hide-icon" aria-hidden="true">
-                    <use href="#nx-eye-off"></use>
-                  </svg>
-                </button>
+              <div
+                id="accountTokenFetchStatus"
+                class="connect-auto-copy-status"
+                aria-live="polite">
+                Saat diklik, dashboard akan mencoba menyalin
+                respons API dan mengisi kolom secara otomatis.
               </div>
             </div>
+          </li>
 
-            <div class="email-auth-field email-auth-field-wide">
-              <div class="email-auth-label-row">
-                <label for="gryphlineCaptchaToken">
-                  CAPTCHA Token
-                </label>
+          <li>
+            <span class="connect-step-number">03</span>
+            <div class="connect-paste-area">
+              <strong>Tempel respons lengkap</strong>
+              <p>
+                Respons akan dibaca di browser. Format resmi
+                <code>data.content</code> dikenali otomatis,
+                lalu hanya nilai token yang dikirim ke Google Apps
+                Script untuk validasi.
+              </p>
 
-                <span>REQUIRED BY API</span>
-              </div>
+              <label
+                for="accountTokenResponse"
+                class="connect-input-label">
+                Respons API
+              </label>
 
               <textarea
-                id="gryphlineCaptchaToken"
-                class="email-auth-input email-auth-captcha"
-                rows="4"
+                id="accountTokenResponse"
+                class="connect-token-input"
+                rows="7"
                 spellcheck="false"
                 autocomplete="off"
-                maxlength="4096"
-                placeholder="Tempel captchaToken yang valid dari challenge Gryphline"
-                required></textarea>
+                placeholder='Contoh: {"data":{"content":"TOKEN..."}}'></textarea>
 
-              <small>
-                Dokumentasi mencantumkan captchaToken dalam body login,
-                tetapi tidak mendokumentasikan proses pembuatannya.
-              </small>
+              <div class="connect-token-tools">
+                <button
+                  id="pasteAccountTokenClipboard"
+                  class="connect-clipboard-button"
+                  type="button">
+                  Tempel dari Clipboard
+                </button>
+              </div>
+
+              <div
+                id="connectTokenStatus"
+                class="connect-token-status"
+                aria-live="polite">
+                Menunggu respons API ditempel.
+              </div>
             </div>
-          </div>
+          </li>
+        </ol>
 
-          <div class="email-auth-route">
-            <span>REQUEST ROUTE</span>
-            <code>
-              POST as.gryphline.com/user/auth/v1/token_by_email_password
-            </code>
-          </div>
+        <label class="connect-terms">
+          <input
+            id="connectAccountTerms"
+            type="checkbox">
+          <span>
+            Saya memahami bahwa account_token memberikan akses
+            ke sesi akun saya, dan saya menyetujui token disimpan
+            di Google Apps Script agar dashboard dapat melakukan
+            sinkronisasi dan check-in.
+          </span>
+        </label>
 
-          <div
-            id="connectAuthStatus"
-            class="connect-token-status"
-            aria-live="polite">
-            Lengkapi email, password, dan CAPTCHA Token.
-          </div>
+        <div class="connect-account-actions">
+          <button
+            id="cancelConnectAccount"
+            class="connect-secondary-button"
+            type="button">
+            Batal
+          </button>
 
-          <label class="connect-terms">
-            <input
-              id="connectAccountTerms"
-              type="checkbox">
-
-            <span>
-              Saya menyetujui kredensial dikirim satu kali melalui
-              Google Apps Script ke endpoint autentikasi Gryphline.
-              Password dan CAPTCHA Token tidak disimpan; hanya
-              ACCOUNT_TOKEN hasil login yang disimpan untuk sinkronisasi.
-            </span>
-          </label>
-
-          <div class="connect-account-actions">
-            <button
-              id="cancelConnectAccount"
-              class="connect-secondary-button"
-              type="button">
-              Batal
-            </button>
-
-            <button
-              id="connectAccountSubmit"
-              class="action-button primary connect-submit-button"
-              type="submit"
-              disabled>
-              <span class="button-svg-icon">
-                <svg class="nexus-icon" aria-hidden="true">
-                  <use href="#nx-link"></use>
-                </svg>
-              </span>
-              <span>Authenticate & Link</span>
-            </button>
-          </div>
-        </form>
+          <button
+            id="connectAccountSubmit"
+            class="action-button primary connect-submit-button"
+            type="button"
+            disabled>
+            <span class="button-svg-icon"><svg class="nexus-icon" aria-hidden="true"><use href="#nx-link"></use></svg></span>
+            <span>Tautkan Akun</span>
+          </button>
+        </div>
       </div>
     </section>
   </div>
@@ -945,12 +945,15 @@
 
       <div class="login-visual-brand">
         <span class="login-visual-logo">
-          <svg class="nexus-icon nexus-brand-mark" aria-hidden="true"><use href="#nx-nexus"></use></svg>
+          <img
+            src="https://raw.githubusercontent.com/Yue-plus/endfield_icons/main/svg/endfield-industries.svg"
+            alt="Endfield Industries"
+            referrerpolicy="no-referrer">
         </span>
 
         <div>
           <small>ENDFIELD INDUSTRIES</small>
-          <strong>COMMAND NEXUS</strong>
+          <strong>ENDFIELD PROTOCOL</strong>
         </div>
       </div>
 
@@ -1039,7 +1042,7 @@
     </form>
   </div>
 
-  <script src="./config.js?v=20260724-email27"></script>
-  <script src="./dashboard.js?v=20260724-email27"></script>
+  <script src="./config.js?v=20260724-mobile28"></script>
+  <script src="./dashboard.js?v=20260724-mobile28"></script>
 </body>
 </html>

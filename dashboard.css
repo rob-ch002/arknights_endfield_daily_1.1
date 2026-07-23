@@ -6555,257 +6555,352 @@ body.delete-account-open {
 }
 
 
-.auth-flow-banner {
-  padding: 14px;
-  display: grid;
-  grid-template-columns:
-    42px
-    minmax(0, 1fr)
-    auto;
-  align-items: center;
-  gap: 12px;
-  border: 1px solid rgba(255, 52, 77, 0.3);
-  border-radius: 14px;
-  background:
-    linear-gradient(
-      120deg,
-      rgba(255, 52, 77, 0.1),
-      rgba(10, 14, 20, 0.92) 58%
-    );
-}
-
-.auth-flow-banner-icon {
-  width: 40px;
-  height: 40px;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(255, 52, 77, 0.42);
-  border-radius: 12px;
-  color: var(--signal);
-  background: rgba(255, 52, 77, 0.08);
-}
-
-.auth-flow-banner-icon
-.nexus-icon {
-  width: 20px;
-  height: 20px;
-}
-
-.auth-flow-banner span,
-.auth-flow-banner strong,
-.auth-flow-banner p {
+.boot-logo img,
+.brand-logo img,
+.login-visual-logo img {
   display: block;
+  object-fit: contain;
 }
 
-.auth-flow-banner > div:nth-child(2) > span {
-  color: var(--signal);
-  font-size: 7px;
-  font-weight: 800;
-  letter-spacing: 1.3px;
+.boot-logo img {
+  width: 33px;
+  height: 33px;
 }
 
-.auth-flow-banner strong {
-  margin-top: 4px;
-  color: var(--text);
-  font-family: "Space Grotesk", sans-serif;
-  font-size: 14px;
+.brand-logo img {
+  width: 31px;
+  height: 31px;
 }
 
-.auth-flow-banner p {
-  margin: 5px 0 0;
+.login-visual-logo img {
+  width: 35px;
+  height: 35px;
+}
+
+.sidebar-close-button {
+  display: none;
+  width: 38px;
+  height: 38px;
+  margin-left: auto;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.025);
   color: var(--muted);
-  font-size: 8px;
-  line-height: 1.55;
-}
-
-.auth-flow-badge {
-  padding: 5px 8px;
-  border: 1px solid rgba(255, 190, 99, 0.35);
-  border-radius: 999px;
-  color: var(--amber);
-  font-size: 6px;
-  font-weight: 800;
-  letter-spacing: 0.8px;
-}
-
-.email-auth-form {
-  margin-top: 12px;
-}
-
-.email-auth-grid {
-  display: grid;
-  grid-template-columns:
-    repeat(2, minmax(0, 1fr));
-  gap: 11px;
-}
-
-.email-auth-field {
-  min-width: 0;
-}
-
-.email-auth-field-wide {
-  grid-column: 1 / -1;
-}
-
-.email-auth-field label {
-  display: block;
-  margin-bottom: 7px;
-  color: #a9b1bc;
-  font-size: 8px;
-  font-weight: 800;
-}
-
-.email-auth-label-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.email-auth-label-row > span {
-  margin-bottom: 7px;
-  color: var(--amber);
-  font-size: 6px;
-  font-weight: 800;
-  letter-spacing: 0.7px;
-}
-
-.email-auth-input {
-  width: 100%;
-  min-height: 46px;
-  padding: 0 13px;
-  border: 1px solid #343b46;
-  border-radius: 12px;
-  outline: none;
-  background: #070a0f;
-  color: #f7f9fc;
-  font: inherit;
-  font-size: 10px;
-  transition:
-    border-color 0.18s ease,
-    box-shadow 0.18s ease;
-}
-
-.email-auth-input:focus {
-  border-color: rgba(255, 52, 77, 0.7);
-  box-shadow:
-    0 0 0 3px
-    rgba(255, 52, 77, 0.08);
-}
-
-.email-auth-input::placeholder {
-  color: #4f5967;
-}
-
-.email-auth-captcha {
-  min-height: 94px;
-  padding-top: 11px;
-  padding-bottom: 11px;
-  resize: vertical;
-  line-height: 1.55;
-}
-
-.email-auth-field small {
-  display: block;
-  margin-top: 7px;
-  color: #6f7885;
-  font-size: 7px;
-  line-height: 1.55;
-}
-
-.email-auth-password-wrap {
-  position: relative;
-}
-
-.email-auth-password-wrap
-.email-auth-input {
-  padding-right: 48px;
-}
-
-.email-auth-password-toggle {
-  position: absolute;
-  top: 50%;
-  right: 7px;
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  transform: translateY(-50%);
-  border: 1px solid transparent;
-  border-radius: 9px;
-  background: transparent;
-  color: #6d7784;
   cursor: pointer;
 }
 
-.email-auth-password-toggle:hover {
-  border-color: var(--line);
+.sidebar-close-button:hover {
+  border-color: rgba(255, 52, 77, 0.52);
   color: var(--text);
-  background: rgba(255, 255, 255, 0.035);
 }
 
-.email-auth-password-toggle
-.nexus-icon {
+.sidebar-close-button .nexus-icon {
   width: 17px;
   height: 17px;
 }
 
-.password-hide-icon {
+.sidebar-backdrop {
   display: none;
+  position: fixed;
+  z-index: 49000;
+  inset: 0;
+  padding: 0;
+  border: 0;
+  background: rgba(2, 4, 7, 0.68);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
 }
 
-.email-auth-password-toggle.is-visible
-.password-show-icon {
+.mobile-topbar-brand {
   display: none;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
 }
 
-.email-auth-password-toggle.is-visible
-.password-hide-icon {
+.mobile-topbar-brand img {
+  width: 27px;
+  height: 27px;
+  object-fit: contain;
+}
+
+.mobile-topbar-brand strong,
+.mobile-topbar-brand small {
   display: block;
 }
 
-.email-auth-route {
-  margin-top: 11px;
-  padding: 10px 11px;
-  display: grid;
-  gap: 6px;
-  border: 1px solid var(--line-soft);
-  border-radius: 11px;
-  background: rgba(255, 255, 255, 0.018);
+.mobile-topbar-brand strong {
+  overflow: hidden;
+  color: var(--text);
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 11px;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.email-auth-route span {
+.mobile-topbar-brand small {
+  margin-top: 3px;
   color: var(--muted-2);
   font-size: 6px;
-  font-weight: 800;
-  letter-spacing: 1px;
+  letter-spacing: 0.45px;
+  text-transform: uppercase;
 }
 
-.email-auth-route code {
-  overflow-wrap: anywhere;
-  color: #aab4c0;
-  font-family: inherit;
-  font-size: 7px;
-  line-height: 1.5;
+.desktop-topbar-copy {
+  display: grid;
+  gap: 3px;
 }
 
-@media (max-width: 560px) {
-  .auth-flow-banner {
+@media (max-width: 980px) {
+  body.endfield-nexus-2026.sidebar-open {
+    overflow: hidden;
+    touch-action: none;
+  }
+
+  .endfield-nexus-2026 .sidebar {
+    width: min(306px, 84vw);
+    box-shadow:
+      28px 0 90px
+      rgba(0, 0, 0, 0.72);
+  }
+
+  .endfield-nexus-2026 .brand {
+    min-height: 72px;
+    height: 72px;
+    padding-inline: 14px;
+  }
+
+  .endfield-nexus-2026 .brand-logo {
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
+  }
+
+  .endfield-nexus-2026 .brand-title {
+    font-size: 14px;
+  }
+
+  .endfield-nexus-2026 .sidebar-close-button {
+    display: grid;
+  }
+
+  .endfield-nexus-2026 .sidebar-nav {
+    height:
+      calc(
+        100dvh -
+        72px -
+        68px
+      );
+    padding:
+      14px
+      12px
+      18px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .endfield-nexus-2026 .sidebar-footer {
+    min-height: 68px;
+    padding: 11px 12px;
+    background:
+      linear-gradient(
+        180deg,
+        rgba(7, 10, 15, 0.92),
+        #070a0f
+      );
+  }
+
+  .endfield-nexus-2026
+  .sidebar.open
+  + .sidebar-backdrop {
+    display: block;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .endfield-nexus-2026 .topbar {
+    min-height: 66px;
+    height: 66px;
+    padding: 0 12px;
+  }
+
+  .endfield-nexus-2026 .topbar-title {
+    min-width: 0;
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .endfield-nexus-2026 .mobile-topbar-brand {
+    display: flex;
+  }
+
+  .endfield-nexus-2026 .desktop-topbar-copy {
+    display: none;
+  }
+
+  .endfield-nexus-2026 .mobile-menu-button,
+  .endfield-nexus-2026 .notification-button {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+  }
+
+  .endfield-nexus-2026 .main-content {
+    padding:
+      12px
+      10px
+      calc(
+        74px +
+        env(safe-area-inset-bottom)
+      );
+  }
+
+  .endfield-nexus-2026 .command-hero {
+    min-height: auto;
+    margin-bottom: 11px;
+    padding: 18px 15px;
+    gap: 16px;
+    border-radius: 17px;
+  }
+
+  .endfield-nexus-2026 .hero-kicker {
+    font-size: 6px;
+    letter-spacing: 1.15px;
+  }
+
+  .endfield-nexus-2026 .page-title-row {
+    margin-top: 8px;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .endfield-nexus-2026 .page-title-row h1 {
+    font-size: clamp(30px, 9vw, 38px);
+    letter-spacing: -1.5px;
+  }
+
+  .endfield-nexus-2026 .badge {
+    padding: 4px 7px;
+    font-size: 6px;
+  }
+
+  .endfield-nexus-2026 .page-heading p {
+    margin-top: 9px;
+    font-size: 8px;
+    line-height: 1.65;
+  }
+
+  .endfield-nexus-2026 .hero-status-grid {
     grid-template-columns:
-      38px
+      repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .endfield-nexus-2026 .hero-status-item {
+    min-height: 54px;
+    padding: 8px;
+    grid-template-columns:
+      7px
       minmax(0, 1fr);
+    gap: 7px;
+    border-radius: 11px;
   }
 
-  .auth-flow-badge {
-    grid-column: 1 / -1;
-    justify-self: start;
+  .endfield-nexus-2026 .hero-status-item small {
+    font-size: 5px;
+    letter-spacing: 0.45px;
   }
 
-  .email-auth-grid {
-    grid-template-columns: 1fr;
+  .endfield-nexus-2026 .hero-status-item strong {
+    font-size: 7px;
   }
 
-  .email-auth-field-wide {
-    grid-column: auto;
+  .endfield-nexus-2026 .dashboard-toolbar {
+    margin-bottom: 11px;
+    padding: 7px;
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    border-radius: 13px;
+  }
+
+  .endfield-nexus-2026 .action-button {
+    min-height: 45px;
+    padding-inline: 10px;
+    gap: 7px;
+    font-size: 7px;
+  }
+
+  .endfield-nexus-2026 .panel {
+    border-radius: 15px;
+  }
+
+  .endfield-nexus-2026 .panel-header {
+    min-height: 61px;
+    padding: 13px 14px;
+  }
+
+  .endfield-nexus-2026 .panel-header h2 {
+    font-size: 12px;
+  }
+
+  .endfield-nexus-2026 .panel-header small {
+    font-size: 6px;
+  }
+
+  .endfield-nexus-2026
+  .user-profile-body,
+  .endfield-nexus-2026
+  .stamina-body,
+  .endfield-nexus-2026
+  .activity-body {
+    padding: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .endfield-nexus-2026 .sidebar {
+    width: min(292px, 86vw);
+  }
+
+  .endfield-nexus-2026 .brand-copy {
+    min-width: 0;
+  }
+
+  .endfield-nexus-2026 .brand-title {
+    overflow: hidden;
+    display: block;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .endfield-nexus-2026
+  .profile-identity-clean {
+    min-height: auto;
+    padding: 12px;
+  }
+
+  .endfield-nexus-2026
+  .profile-command-copy h3 {
+    font-size: 22px;
+  }
+
+  .endfield-nexus-2026
+  .profile-stats {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+
+  .endfield-nexus-2026
+  .metric-box {
+    min-height: 62px;
+    padding-inline: 5px;
   }
 }

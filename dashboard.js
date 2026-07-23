@@ -2318,13 +2318,76 @@ function stopAutoSync() {
   }
 }
 
+function setSidebarOpen(open) {
+  const sidebar =
+    $("#sidebar");
+
+  const backdrop =
+    $("#sidebarBackdrop");
+
+  sidebar.classList.toggle(
+    "open",
+    open
+  );
+
+  document.body.classList.toggle(
+    "sidebar-open",
+    open
+  );
+
+  $("#mobileMenuButton").setAttribute(
+    "aria-expanded",
+    String(open)
+  );
+
+  backdrop.tabIndex =
+    open
+      ? 0
+      : -1;
+}
+
+function openSidebar() {
+  setSidebarOpen(true);
+}
+
 function closeSidebar() {
-  $("#sidebar").classList.remove("open");
+  setSidebarOpen(false);
 }
 
 $("#mobileMenuButton").addEventListener(
   "click",
-  () => $("#sidebar").classList.toggle("open")
+  () => {
+    const open =
+      !$("#sidebar")
+        .classList
+        .contains("open");
+
+    setSidebarOpen(open);
+  }
+);
+
+$("#sidebarCloseButton").addEventListener(
+  "click",
+  closeSidebar
+);
+
+$("#sidebarBackdrop").addEventListener(
+  "click",
+  closeSidebar
+);
+
+document.addEventListener(
+  "keydown",
+  event => {
+    if (
+      event.key === "Escape" &&
+      $("#sidebar")
+        .classList
+        .contains("open")
+    ) {
+      closeSidebar();
+    }
+  }
 );
 
 [
@@ -2333,10 +2396,19 @@ $("#mobileMenuButton").addEventListener(
 ].forEach(selector => {
   $(selector).addEventListener(
     "click",
-    () => syncState({
-      action: "sync",
-      manual: true
-    })
+    () => {
+      if (
+        selector ===
+        "#sidebarRefreshButton"
+      ) {
+        closeSidebar();
+      }
+
+      syncState({
+        action: "sync",
+        manual: true
+      });
+    }
   );
 });
 
@@ -2527,7 +2599,16 @@ async function runCheckin() {
 ].forEach(selector => {
   $(selector).addEventListener(
     "click",
-    runCheckin
+    () => {
+      if (
+        selector ===
+        "#sidebarCheckinButton"
+      ) {
+        closeSidebar();
+      }
+
+      runCheckin();
+    }
   );
 });
 
@@ -2688,108 +2769,299 @@ function bindCopyUidInteraction() {
   );
 }
 
-function isValidGryphlineEmail(value) {
-  const email =
-    String(value || "").trim();
+function isLikelyAccountToken(value) {
+  if (typeof value !== "string") {
+    return false;
+  }
+
+  const token =
+    value.trim();
 
   return (
-    email.length <= 254 &&
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    token.length >= 12 &&
+    token.length <= 512 &&
+    /^[A-Za-z0-9+/_=%.-]+$/.test(token)
   );
 }
 
-function getEmailAuthValues() {
-  return {
-    email:
-      $("#gryphlineEmail").value.trim(),
-    password:
-      $("#gryphlinePassword").value,
-    captchaToken:
-      $("#gryphlineCaptchaToken").value.trim(),
-    termsAccepted:
-      $("#connectAccountTerms").checked
-  };
+function findTokenByKey(
+  value,
+  depth = 0
+) {
+  if (
+    value === null ||
+    value === undefined ||
+    depth > 10
+  ) {
+    return "";
+  }
+
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const found =
+        findTokenByKey(
+          item,
+          depth + 1
+        );
+
+      if (found) {
+        return found;
+      }
+    }
+
+    return "";
+  }
+
+  if (typeof value !== "object") {
+    return "";
+  }
+
+  const preferredKeys = [
+    "account_token",
+    "accountToken",
+    "content",
+    "token",
+    "value"
+  ];
+
+  for (const key of preferredKeys) {
+    const candidate =
+      value[key];
+
+    if (
+      typeof candidate === "string" &&
+      isLikelyAccountToken(candidate)
+    ) {
+      return candidate.trim();
+    }
+  }
+
+  const wrapperKeys = [
+    "data",
+    "result",
+    "payload",
+    "response"
+  ];
+
+  for (const key of wrapperKeys) {
+    if (
+      Object.prototype.hasOwnProperty.call(
+        value,
+        key
+      )
+    ) {
+      const found =
+        findTokenByKey(
+          value[key],
+          depth + 1
+        );
+
+      if (found) {
+        return found;
+      }
+    }
+  }
+
+  for (const child of Object.values(value)) {
+    const found =
+      findTokenByKey(
+        child,
+        depth + 1
+      );
+
+    if (found) {
+      return found;
+    }
+  }
+
+  return "";
+}
+
+function normalizeAccountToken(value) {
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  let token =
+    value
+      .replace(/^\uFEFF/, "")
+      .trim()
+      .replace(/^["']|["']$/g, "")
+      .trim();
+
+  if (
+    token.startsWith("{") ||
+    token.startsWith("[")
+  ) {
+    return "";
+  }
+
+  try {
+    token =
+      decodeURIComponent(token);
+  } catch (_) {
+  }
+
+  token =
+    token.trim();
+
+  return isLikelyAccountToken(token)
+    ? token
+    : "";
+}
+
+function extractAccountToken(responseText) {
+  const text =
+    String(responseText || "")
+      .replace(/^\uFEFF/, "")
+      .trim();
+
+  if (!text) {
+    return "";
+  }
+
+  let parsed = null;
+
+  try {
+    parsed = JSON.parse(text);
+  } catch (_) {
+    parsed = null;
+  }
+
+  for (
+    let attempt = 0;
+    attempt < 3 &&
+    typeof parsed === "string";
+    attempt += 1
+  ) {
+    const stringValue =
+      parsed.trim();
+
+    try {
+      parsed =
+        JSON.parse(stringValue);
+    } catch (_) {
+      return normalizeAccountToken(
+        stringValue
+      );
+    }
+  }
+
+  if (
+    parsed &&
+    typeof parsed === "object"
+  ) {
+    const nested =
+      normalizeAccountToken(
+        findTokenByKey(parsed)
+      );
+
+    if (nested) {
+      return nested;
+    }
+
+    return "";
+  }
+
+  const labelledMatch =
+    text.match(
+      /["']?(?:account_token|accountToken|content|token)["']?\s*[:=]\s*["']([^"']+)["']/i
+    );
+
+  if (labelledMatch) {
+    return normalizeAccountToken(
+      labelledMatch[1]
+    );
+  }
+
+  return normalizeAccountToken(text);
+}
+
+function maskSensitiveToken(token) {
+  if (!token) {
+    return "";
+  }
+
+  if (token.length <= 14) {
+    return "••••••••••••";
+  }
+
+  return (
+    token.slice(0, 6) +
+    "••••••••••" +
+    token.slice(-6)
+  );
 }
 
 function updateConnectAccountState() {
-  const values =
-    getEmailAuthValues();
+  const textarea =
+    $("#accountTokenResponse");
+
+  const terms =
+    $("#connectAccountTerms");
 
   const status =
-    $("#connectAuthStatus");
+    $("#connectTokenStatus");
 
   const submit =
     $("#connectAccountSubmit");
 
-  let message =
-    "Lengkapi email, password, dan CAPTCHA Token.";
+  const token =
+    extractAccountToken(
+      textarea?.value || ""
+    );
 
-  let statusClass =
-    "connect-token-status";
+  if (!textarea.value.trim()) {
+    status.className =
+      "connect-token-status";
 
-  if (
-    values.email &&
-    !isValidGryphlineEmail(
-      values.email
-    )
-  ) {
-    message =
-      "Format email Gryphline tidak valid.";
+    status.textContent =
+      "Menunggu respons API ditempel.";
+  } else if (token) {
+    status.className =
+      "connect-token-status valid";
 
-    statusClass +=
-      " invalid";
-  } else if (
-    values.email &&
-    values.password &&
-    values.captchaToken
-  ) {
-    message =
-      values.termsAccepted
-        ? "Authentication request siap dikirim."
-        : "Baca dan centang persetujuan terlebih dahulu.";
+    status.textContent =
+      `account_token ditemukan: ` +
+      `${maskSensitiveToken(token)}`;
+  } else {
+    status.className =
+      "connect-token-status invalid";
 
-    statusClass +=
-      values.termsAccepted
-        ? " valid"
-        : "";
+    status.textContent =
+      "Token belum ditemukan. Respons resmi harus memiliki data.content, account_token, atau token.";
   }
 
-  status.className =
-    statusClass;
-
-  status.textContent =
-    message;
-
   submit.disabled =
-    !isValidGryphlineEmail(
-      values.email
-    ) ||
-    !values.password ||
-    !values.captchaToken ||
-    !values.termsAccepted;
+    !token ||
+    !terms.checked;
 
-  return values;
+  return token;
 }
 
 function resetConnectAccountForm() {
-  $("#connectAccountForm").reset();
+  $("#accountTokenResponse").value =
+    "";
 
-  $("#gryphlinePassword").type =
-    "password";
+  $("#connectAccountTerms").checked =
+    false;
 
-  $("#toggleGryphlinePassword")
-    .classList.remove(
-      "is-visible"
-    );
-
-  $("#connectAuthStatus").className =
+  $("#connectTokenStatus").className =
     "connect-token-status";
 
-  $("#connectAuthStatus").textContent =
-    "Lengkapi email, password, dan CAPTCHA Token.";
+  $("#connectTokenStatus").textContent =
+    "Menunggu respons API ditempel.";
 
   $("#connectAccountSubmit").disabled =
     true;
+
+  state.accountTokenApiOpened =
+    false;
+
+  setAutoCopyStatus(
+    "",
+    "Saat diklik, dashboard akan mencoba menyalin respons API dan mengisi kolom secara otomatis."
+  );
 }
 
 function setConnectAccountOpen(open) {
@@ -2808,245 +3080,51 @@ function setConnectAccountOpen(open) {
     closeSidebar();
 
     setTimeout(() => {
-      $("#gryphlineEmail").focus();
+      $("#accountTokenResponse").focus();
     }, 80);
   }
 }
 
-function gasPostRequest(
-  action,
-  parameters = {}
-) {
-  if (!gasConfigured()) {
-    return Promise.reject(
-      new Error(
-        "URL Google Apps Script belum benar di config.js."
-      )
-    );
-  }
-
-  return new Promise(
-    (resolve, reject) => {
-      const nonce =
-        `endfield_${Date.now()}_` +
-        `${Math.random().toString(36).slice(2)}`;
-
-      const frameName =
-        `endfieldPostFrame_${Date.now()}_` +
-        `${Math.random().toString(36).slice(2)}`;
-
-      const iframe =
-        document.createElement(
-          "iframe"
-        );
-
-      const form =
-        document.createElement(
-          "form"
-        );
-
-      let completed =
-        false;
-
-      let timeoutId =
-        null;
-
-      const cleanup = () => {
-        window.removeEventListener(
-          "message",
-          onMessage
-        );
-
-        if (timeoutId !== null) {
-          clearTimeout(timeoutId);
-        }
-
-        form.remove();
-        iframe.remove();
-      };
-
-      const finish =
-        handler =>
-        value => {
-          if (completed) {
-            return;
-          }
-
-          completed =
-            true;
-
-          cleanup();
-          handler(value);
-        };
-
-      const onMessage =
-        event => {
-          const data =
-            event.data;
-
-          if (
-            !data ||
-            data.source !==
-              "endfield-gas-post" ||
-            data.nonce !== nonce
-          ) {
-            return;
-          }
-
-          finish(resolve)(
-            data.payload
-          );
-        };
-
-      iframe.name =
-        frameName;
-
-      iframe.hidden =
-        true;
-
-      iframe.setAttribute(
-        "aria-hidden",
-        "true"
-      );
-
-      form.method =
-        "POST";
-
-      form.action =
-        GAS_URL;
-
-      form.target =
-        frameName;
-
-      form.hidden =
-        true;
-
-      const fields = {
-        action,
-        response_mode:
-          "postmessage",
-        nonce,
-        ...parameters
-      };
-
-      Object.entries(fields).forEach(
-        ([name, value]) => {
-          const input =
-            document.createElement(
-              "input"
-            );
-
-          input.type =
-            "hidden";
-
-          input.name =
-            name;
-
-          input.value =
-            String(value ?? "");
-
-          form.appendChild(
-            input
-          );
-        }
-      );
-
-      window.addEventListener(
-        "message",
-        onMessage
-      );
-
-      document.body.append(
-        iframe,
-        form
-      );
-
-      timeoutId =
-        setTimeout(
-          finish(() => {
-            reject(
-              new Error(
-                "Authentication request melewati batas waktu."
-              )
-            );
-          }),
-          45000
-        );
-
-      form.submit();
-    }
-  );
-}
-
 async function linkConnectedAccount() {
-  const values =
+  const token =
     updateConnectAccountState();
 
-  if (
-    !isValidGryphlineEmail(
-      values.email
-    ) ||
-    !values.password ||
-    !values.captchaToken
-  ) {
+  if (!token) {
     showToast({
       type: "warning",
-      title:
-        "Authentication belum lengkap",
+      title: "Token belum ditemukan",
       message:
-        "Isi email, password, dan CAPTCHA Token.",
-      duration: 4500
+        "Tempel respons lengkap dari endpoint account_token.",
+      duration: 4200
     });
-
     return;
   }
 
-  if (!values.termsAccepted) {
+  if (!$("#connectAccountTerms").checked) {
     showToast({
       type: "warning",
-      title:
-        "Persetujuan diperlukan",
+      title: "Persetujuan diperlukan",
       message:
-        "Baca dan centang persetujuan sebelum login.",
-      duration: 4500
+        "Baca dan centang persetujuan sebelum menautkan akun.",
+      duration: 4200
     });
-
     return;
   }
 
   const submit =
     $("#connectAccountSubmit");
 
-  const status =
-    $("#connectAuthStatus");
+  submit.disabled = true;
+  startOperationProgress("connect");
 
-  submit.disabled =
-    true;
-
-  status.className =
-    "connect-token-status valid";
-
-  status.textContent =
-    "Mengautentikasi akun Gryphline...";
-
-  startOperationProgress(
-    "connect"
-  );
-
-  let successful =
-    false;
+  let successful = false;
 
   try {
     const response =
-      await gasPostRequest(
-        "loginaccount",
+      await gasRequest(
+        "addAccount",
         {
-          email:
-            values.email,
-          password:
-            values.password,
-          captcha_token:
-            values.captchaToken
+          account_token: token
         }
       );
 
@@ -3057,12 +3135,11 @@ async function linkConnectedAccount() {
     ) {
       throw new Error(
         response?.message ||
-        "Login Gryphline gagal."
+        "Akun tidak berhasil divalidasi."
       );
     }
 
-    successful =
-      true;
+    successful = true;
 
     if (response.account?.slug) {
       state.selectedSlug =
@@ -3083,32 +3160,21 @@ async function linkConnectedAccount() {
       type: "success",
       title:
         response.updated
-          ? "Akun berhasil diperbarui"
+          ? "Token akun diperbarui"
           : "Akun berhasil ditautkan",
       message:
         `${response.account?.name || "Akun"} ` +
-        "berhasil diautentikasi melalui Gryphline.",
-      duration: 5600
+        `berhasil terhubung ke dashboard.`,
+      duration: 5200
     });
   } catch (error) {
-    status.className =
-      "connect-token-status invalid";
-
-    status.textContent =
-      error?.message ||
-      "Authentication gagal.";
-
-    $("#gryphlinePassword").value =
-      "";
-
     showToast({
       type: "error",
-      title:
-        "Gryphline authentication gagal",
+      title: "Gagal menautkan akun",
       message:
         error?.message ||
-        "Periksa email, password, dan CAPTCHA Token.",
-      duration: 8000
+        "Token tidak valid atau layanan sedang bermasalah.",
+      duration: 7000
     });
   } finally {
     await finishOperationProgress(
@@ -3116,14 +3182,244 @@ async function linkConnectedAccount() {
       successful
     );
 
+    submit.disabled = false;
+
     if (successful) {
       resetConnectAccountForm();
-      setConnectAccountOpen(
-        false
-      );
+      setConnectAccountOpen(false);
     } else {
       updateConnectAccountState();
     }
+  }
+}
+
+async function writeClipboardText(text) {
+  if (
+    navigator.clipboard &&
+    window.isSecureContext
+  ) {
+    await navigator.clipboard.writeText(text);
+    return true;
+  }
+
+  const temporary =
+    document.createElement("textarea");
+
+  temporary.value = text;
+  temporary.setAttribute(
+    "readonly",
+    ""
+  );
+
+  temporary.style.position =
+    "fixed";
+
+  temporary.style.opacity =
+    "0";
+
+  temporary.style.pointerEvents =
+    "none";
+
+  document.body.appendChild(
+    temporary
+  );
+
+  temporary.select();
+
+  const copied =
+    document.execCommand("copy");
+
+  temporary.remove();
+
+  return copied;
+}
+
+function setAutoCopyStatus(
+  type,
+  message
+) {
+  const status =
+    $("#accountTokenFetchStatus");
+
+  status.className =
+    "connect-auto-copy-status" +
+    (
+      type
+        ? ` ${type}`
+        : ""
+    );
+
+  status.textContent =
+    message;
+}
+
+function useAccountTokenResponse(
+  responseText,
+  {
+    copied = false,
+    source = "API"
+  } = {}
+) {
+  const token =
+    extractAccountToken(
+      responseText
+    );
+
+  if (!token) {
+    throw new Error(
+      "Respons tidak memiliki account_token yang valid."
+    );
+  }
+
+  const textarea =
+    $("#accountTokenResponse");
+
+  textarea.value =
+    responseText;
+
+  updateConnectAccountState();
+
+  setAutoCopyStatus(
+    "success",
+    copied
+      ? `${source}: respons otomatis disalin dan kolom sudah diisi.`
+      : `${source}: respons ditemukan dan kolom sudah diisi.`
+  );
+
+  return token;
+}
+
+async function fetchAndCopyAccountToken() {
+  state.accountTokenApiOpened =
+    true;
+
+  window.open(
+    ACCOUNT_TOKEN_API_URL,
+    "_blank",
+    "noopener,noreferrer"
+  );
+
+  setAutoCopyStatus(
+    "loading",
+    "Membuka API resmi dan mencoba membaca respons..."
+  );
+
+  const controller =
+    new AbortController();
+
+  const timeout =
+    setTimeout(
+      () => controller.abort(),
+      10000
+    );
+
+  try {
+    const response =
+      await fetch(
+        ACCOUNT_TOKEN_API_URL,
+        {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+          headers: {
+            "Accept":
+              "application/json, text/plain, */*"
+          },
+          signal: controller.signal
+        }
+      );
+
+    const responseText =
+      await response.text();
+
+    if (!response.ok) {
+      throw new Error(
+        `API HTTP ${response.status}`
+      );
+    }
+
+    useAccountTokenResponse(
+      responseText,
+      {
+        copied: false,
+        source: "API resmi"
+      }
+    );
+
+    let copied = false;
+
+    try {
+      copied =
+        await writeClipboardText(
+          responseText
+        );
+    } catch (_) {
+      copied = false;
+    }
+
+    setAutoCopyStatus(
+      "success",
+      copied
+        ? "Respons API otomatis disalin dan kolom sudah diisi."
+        : "Kolom sudah terisi otomatis. Browser tidak mengizinkan penyalinan clipboard."
+    );
+  } catch (error) {
+    setAutoCopyStatus(
+      "warning",
+      "Tab API sudah dibuka. Browser memblokir pembacaan otomatis lintas domain; salin respons di tab tersebut lalu kembali. Dashboard akan mencoba menempelkannya."
+    );
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function pasteAccountTokenFromClipboard({
+  silent = false
+} = {}) {
+  if (
+    !navigator.clipboard ||
+    !window.isSecureContext
+  ) {
+    if (!silent) {
+      setAutoCopyStatus(
+        "warning",
+        "Browser tidak menyediakan akses clipboard otomatis. Tempel respons secara manual."
+      );
+    }
+
+    return false;
+  }
+
+  try {
+    const clipboardText =
+      await navigator.clipboard.readText();
+
+    if (!clipboardText.trim()) {
+      throw new Error(
+        "Clipboard kosong."
+      );
+    }
+
+    useAccountTokenResponse(
+      clipboardText,
+      {
+        copied: true,
+        source: "Clipboard"
+      }
+    );
+
+    return true;
+  } catch (error) {
+    if (!silent) {
+      setAutoCopyStatus(
+        "warning",
+        error?.message === "Clipboard kosong."
+          ? "Clipboard masih kosong."
+          : "Izin membaca clipboard ditolak. Gunakan Ctrl+V atau tekan lama lalu Paste."
+      );
+    }
+
+    return false;
   }
 }
 
@@ -3490,13 +3786,45 @@ function bindDeleteAccount() {
 }
 
 function bindConnectAccount() {
+  $("#openAccountTokenApi")
+    .addEventListener(
+      "click",
+      fetchAndCopyAccountToken
+    );
+
+  $("#pasteAccountTokenClipboard")
+    .addEventListener(
+      "click",
+      () => {
+        pasteAccountTokenFromClipboard({
+          silent: false
+        });
+      }
+    );
+
+  window.addEventListener(
+    "focus",
+    () => {
+      if (
+        state.accountTokenApiOpened &&
+        !extractAccountToken(
+          $("#accountTokenResponse").value
+        )
+      ) {
+        setTimeout(() => {
+          pasteAccountTokenFromClipboard({
+            silent: true
+          });
+        }, 250);
+      }
+    }
+  );
+
   $("#connectAccountButton")
     .addEventListener(
       "click",
       () => {
-        setConnectAccountOpen(
-          true
-        );
+        setConnectAccountOpen(true);
       }
     );
 
@@ -3504,9 +3832,7 @@ function bindConnectAccount() {
     .addEventListener(
       "click",
       () => {
-        setConnectAccountOpen(
-          false
-        );
+        setConnectAccountOpen(false);
       }
     );
 
@@ -3514,9 +3840,7 @@ function bindConnectAccount() {
     .addEventListener(
       "click",
       () => {
-        setConnectAccountOpen(
-          false
-        );
+        setConnectAccountOpen(false);
       }
     );
 
@@ -3528,23 +3852,16 @@ function bindConnectAccount() {
           event.target ===
           $("#connectAccountOverlay")
         ) {
-          setConnectAccountOpen(
-            false
-          );
+          setConnectAccountOpen(false);
         }
       }
     );
 
-  [
-    "#gryphlineEmail",
-    "#gryphlinePassword",
-    "#gryphlineCaptchaToken"
-  ].forEach(selector => {
-    $(selector).addEventListener(
+  $("#accountTokenResponse")
+    .addEventListener(
       "input",
       updateConnectAccountState
     );
-  });
 
   $("#connectAccountTerms")
     .addEventListener(
@@ -3552,73 +3869,26 @@ function bindConnectAccount() {
       updateConnectAccountState
     );
 
-  $("#toggleGryphlinePassword")
+  $("#connectAccountSubmit")
     .addEventListener(
       "click",
-      () => {
-        const input =
-          $("#gryphlinePassword");
-
-        const visible =
-          input.type === "text";
-
-        input.type =
-          visible
-            ? "password"
-            : "text";
-
-        $("#toggleGryphlinePassword")
-          .classList.toggle(
-            "is-visible",
-            !visible
-          );
-
-        $("#toggleGryphlinePassword")
-          .setAttribute(
-            "aria-label",
-            visible
-              ? "Tampilkan password"
-              : "Sembunyikan password"
-          );
-      }
-    );
-
-  $("#connectAccountForm")
-    .addEventListener(
-      "submit",
-      event => {
-        event.preventDefault();
-        linkConnectedAccount();
-      }
+      linkConnectedAccount
     );
 
   document.addEventListener(
     "keydown",
     event => {
-      if (
-        event.key !== "Escape"
-      ) {
+      if (event.key !== "Escape") {
         return;
       }
 
-      if (
-        !$("#deleteAccountOverlay")
-          .hidden
-      ) {
-        setDeleteAccountOpen(
-          false
-        );
-
+      if (!$("#deleteAccountOverlay").hidden) {
+        setDeleteAccountOpen(false);
         return;
       }
 
-      if (
-        !$("#connectAccountOverlay")
-          .hidden
-      ) {
-        setConnectAccountOpen(
-          false
-        );
+      if (!$("#connectAccountOverlay").hidden) {
+        setConnectAccountOpen(false);
       }
     }
   );
@@ -3787,6 +4057,17 @@ async function initialize() {
       );
     }
 
+    window.addEventListener(
+      "resize",
+      () => {
+        if (window.innerWidth > 980) {
+          closeSidebar();
+        }
+      }
+    );
+
+
+    
     document.addEventListener(
       "visibilitychange",
       () => {
