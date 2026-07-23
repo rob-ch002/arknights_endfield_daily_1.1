@@ -1,0 +1,38 @@
+name: Endfield Web Push Worker
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: endfield-web-push-worker
+  cancel-in-progress: true
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install web-push
+        run: npm install --no-save web-push@3.6.7
+
+      - name: Generate and send queued notifications
+        env:
+          GAS_URL: ${{ secrets.GAS_URL }}
+          PUSH_BATCH_SECRET: ${{ secrets.PUSH_BATCH_SECRET }}
+          VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+          VAPID_SUBJECT: ${{ secrets.VAPID_SUBJECT }}
+        run: node scripts/send_push_notifications.mjs
