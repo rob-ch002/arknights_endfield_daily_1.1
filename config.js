@@ -27,7 +27,7 @@ window.ENDFIELD_CONFIG = Object.freeze({
   performanceModeDefault: "balanced",
 
   /* Isi dengan public VAPID key dari GitHub secret VAPID_PUBLIC_KEY. */
-  pushVapidPublicKey: "",
+  pushVapidPublicKey: "BHIEtGmiEJk9vocX2h0mWYzZr7t34_SQK50j5jWk5RxdMj78FFRrBWp0KuDwSsUtceMer-efK8TuPVEioqFVfBE",
 
   // PIN default: 123456
   pinSha256:
