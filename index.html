@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#07090d">
 
-  <title>Endfield Command Nexus</title>
+  <title>Endfield Protocol Dashboard</title>
 
   <link rel="icon" type="image/png"
         href="https://cdn2.cdnstep.com/uZonBNFhuQtCPjNRKuWd/cover-2.thumb256.png">
@@ -13,10 +13,15 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap"
         rel="stylesheet">
-  <link rel="stylesheet" href="./dashboard.css?v=20260724-daily29">
+  <link rel="manifest" href="./manifest.webmanifest?v=30">
+  <link rel="apple-touch-icon" href="./assets/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="application-name" content="Endfield Protocol">
+  <link rel="stylesheet" href="./dashboard.css?v=20260724-complete30">
 </head>
 
-<body class="endfield-nexus-2026">
+<body class="endfield-nexus-2026 is-loading-dashboard">
   <svg
     class="nexus-icon-sprite"
     aria-hidden="true"
@@ -129,6 +134,49 @@
       <circle cx="12" cy="12" r="9"></circle>
       <path d="M12 11v6M12 7h.01"></path>
     </symbol>
+
+    <symbol id="nx-accounts" viewBox="0 0 24 24">
+      <circle cx="9" cy="8" r="3"></circle>
+      <path d="M3.5 19v-1.4c0-2.6 2.4-4.6 5.5-4.6s5.5 2 5.5 4.6V19"></path>
+      <circle cx="17" cy="9" r="2.2"></circle>
+      <path d="M15.5 14.2c3.1-.5 5 1.2 5 3.4V19"></path>
+    </symbol>
+
+    <symbol id="nx-settings" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="3"></circle>
+      <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"></path>
+      <circle cx="12" cy="12" r="8"></circle>
+    </symbol>
+
+    <symbol id="nx-diagnostics" viewBox="0 0 24 24">
+      <path d="M4 19V5M4 19h16"></path>
+      <path d="m7 15 3-4 3 2 4-6"></path>
+      <path d="M17 7h3v3"></path>
+    </symbol>
+
+    <symbol id="nx-star" viewBox="0 0 24 24">
+      <path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z"></path>
+    </symbol>
+
+    <symbol id="nx-up" viewBox="0 0 24 24">
+      <path d="m6 15 6-6 6 6"></path>
+    </symbol>
+
+    <symbol id="nx-down" viewBox="0 0 24 24">
+      <path d="m6 9 6 6 6-6"></path>
+    </symbol>
+
+    <symbol id="nx-download" viewBox="0 0 24 24">
+      <path d="M12 3v11"></path>
+      <path d="m7 10 5 5 5-5"></path>
+      <path d="M4 19h16"></path>
+    </symbol>
+
+    <symbol id="nx-wifi-off" viewBox="0 0 24 24">
+      <path d="M3 3l18 18"></path>
+      <path d="M8.5 8.6A9.7 9.7 0 0 1 21 10"></path>
+      <path d="M4 10a13 13 0 0 1 2.2-1.6M7.5 14a6.5 6.5 0 0 1 7.5-.8M10.5 18a2.5 2.5 0 0 1 3 0"></path>
+    </symbol>
   </svg>
   <div
     id="bootOverlay"
@@ -181,6 +229,11 @@
 
   <div class="background-media" aria-hidden="true"></div>
 
+  <div id="offlineBanner" class="offline-banner" hidden>
+    <svg class="nexus-icon" aria-hidden="true"><use href="#nx-wifi-off"></use></svg>
+    <span>Offline mode — cached interface is active.</span>
+  </div>
+
   <div class="app-shell">
     <aside id="sidebar" class="sidebar">
       <div class="brand">
@@ -224,6 +277,16 @@
           type="button">
           <span class="nav-icon"><svg class="nexus-icon" aria-hidden="true"><use href="#nx-account-add"></use></svg></span>
           <span>Connect Account</span>
+        </button>
+
+        <button id="accountManagerButton" class="nav-button" type="button">
+          <span class="nav-icon"><svg class="nexus-icon" aria-hidden="true"><use href="#nx-accounts"></use></svg></span>
+          <span>Account Manager</span>
+        </button>
+
+        <button id="diagnosticsButton" class="nav-button" type="button">
+          <span class="nav-icon"><svg class="nexus-icon" aria-hidden="true"><use href="#nx-diagnostics"></use></svg></span>
+          <span>System Diagnostics</span>
         </button>
 
         <div class="nav-label">Actions</div>
@@ -362,6 +425,25 @@
             </div>
           </section>
 
+          <section class="account-summary-grid" aria-label="Account summary">
+            <article class="summary-card">
+              <span class="summary-icon"><svg class="nexus-icon" aria-hidden="true"><use href="#nx-accounts"></use></svg></span>
+              <div><small>Accounts Online</small><strong id="summaryAccountsOnline">—</strong></div>
+            </article>
+            <article class="summary-card">
+              <span class="summary-icon energy"><svg class="nexus-icon" aria-hidden="true"><use href="#nx-energy"></use></svg></span>
+              <div><small>Energy Full</small><strong id="summaryEnergyFull">—</strong></div>
+            </article>
+            <article class="summary-card">
+              <span class="summary-icon warning"><svg class="nexus-icon" aria-hidden="true"><use href="#nx-warning"></use></svg></span>
+              <div><small>Tasks Incomplete</small><strong id="summaryTasksIncomplete">—</strong></div>
+            </article>
+            <article class="summary-card">
+              <span class="summary-icon"><svg class="nexus-icon" aria-hidden="true"><use href="#nx-check"></use></svg></span>
+              <div><small>Last Check-in</small><strong id="summaryLastCheckin">Waiting</strong></div>
+            </article>
+          </section>
+
           <div class="dashboard-toolbar">
             <button id="checkinButton"
                     class="action-button primary"
@@ -377,6 +459,11 @@
               <span>Sync Telemetry</span>
             </button>
 
+            <button id="syncSelectedButton" class="action-button compact-action" type="button">
+              <span class="button-svg-icon"><svg class="nexus-icon" aria-hidden="true"><use href="#nx-sync"></use></svg></span>
+              <span>Sync This Account</span>
+            </button>
+
             <span id="toolbarInfo" aria-hidden="true"></span>
           </div>
 
@@ -390,6 +477,10 @@
                 </div>
                 <span>01</span>
               </header>
+
+              <div class="panel-skeleton" aria-hidden="true">
+                <span></span><span></span><span></span><span></span>
+              </div>
 
               <div class="user-profile-body">
                 <div class="profile-identity profile-identity-clean">
@@ -455,6 +546,10 @@
                 </div>
                 <span>02</span>
               </header>
+
+              <div class="panel-skeleton" aria-hidden="true">
+                <span></span><span></span><span></span><span></span>
+              </div>
 
               <div class="stamina-body">
                 <div
@@ -534,16 +629,15 @@
                 <span>03</span>
               </header>
 
+              <div class="panel-skeleton" aria-hidden="true">
+                <span></span><span></span><span></span><span></span>
+              </div>
+
               <div class="activity-body">
-                <div class="feature-icon activity-icon daily-check-icon" aria-hidden="true">
-                  <svg class="nexus-icon" aria-hidden="true">
-                    <use href="#nx-daily-check"></use>
-                  </svg>
-                </div>
 
                 <div class="task-block task-daily">
                   <div class="task-heading">
-                    <span>Activity Points</span>
+                    <span class="task-title-group"><span>Activity Points</span><em id="dailyState" class="task-state">WAITING</em></span>
                     <strong class="task-value">
                       <span class="task-fraction">
                         <b id="dailyCurrent">—</b>
@@ -569,7 +663,7 @@
 
                 <div class="task-block task-weekly">
                   <div class="task-heading">
-                    <span>Weekly Routine</span>
+                    <span class="task-title-group"><span>Weekly Routine</span><em id="weeklyState" class="task-state">WAITING</em></span>
                     <strong class="task-value">
                       <span class="task-fraction">
                         <b id="weeklyCurrent">—</b>
@@ -595,7 +689,7 @@
 
                 <div class="task-block task-protocol">
                   <div class="task-heading">
-                    <span>Protocol Pass</span>
+                    <span class="task-title-group"><span>Protocol Pass</span><em id="protocolState" class="task-state">WAITING</em></span>
                     <strong class="task-value">
                       <span class="task-fraction">
                         <b id="protocolCurrent">—</b>
@@ -631,6 +725,10 @@
               <span>04</span>
             </header>
 
+              <div class="panel-skeleton" aria-hidden="true">
+                <span></span><span></span><span></span><span></span>
+              </div>
+
             <div class="status-body">
               <div class="status-item">
                 <span>Username</span>
@@ -648,6 +746,14 @@
                 <span>Browser refresh</span>
                 <strong id="browserRefreshAt">—</strong>
               </div>
+              <div class="status-item">
+                <span>Data freshness</span>
+                <strong id="dataFreshnessStatus" class="freshness-badge waiting">WAITING</strong>
+              </div>
+              <div class="status-item">
+                <span>Last successful request</span>
+                <strong id="lastSuccessfulRequest">—</strong>
+              </div>
             </div>
 
             <div id="sourceErrors"
@@ -656,6 +762,69 @@
           </section>
         </div>
       </main>
+    </section>
+  </div>
+
+  <div id="accountManagerOverlay" class="utility-overlay" hidden>
+    <section class="utility-modal account-manager-modal" role="dialog" aria-modal="true" aria-labelledby="accountManagerTitle">
+      <header class="utility-header">
+        <div><span>ACCOUNT CONTROL</span><h2 id="accountManagerTitle">Account Manager</h2></div>
+        <button id="closeAccountManager" class="utility-close" type="button" aria-label="Tutup"><svg class="nexus-icon"><use href="#nx-close"></use></svg></button>
+      </header>
+      <div class="account-manager-layout">
+        <aside id="managerAccountList" class="manager-account-list"></aside>
+        <div class="manager-editor">
+          <div class="manager-selected-head">
+            <div><small>SELECTED ACCOUNT</small><strong id="managerAccountName">—</strong><span id="managerAccountUid">UID —</span></div>
+            <button id="managerPrimaryButton" class="icon-command-button" type="button"><svg class="nexus-icon"><use href="#nx-star"></use></svg><span>Primary</span></button>
+          </div>
+          <label class="manager-field">Display name<input id="managerDisplayName" type="text" maxlength="40" placeholder="Nama tampilan"></label>
+          <div class="manager-order-actions">
+            <button id="managerMoveUp" type="button"><svg class="nexus-icon"><use href="#nx-up"></use></svg>Move Up</button>
+            <button id="managerMoveDown" type="button"><svg class="nexus-icon"><use href="#nx-down"></use></svg>Move Down</button>
+          </div>
+          <fieldset class="manager-notification-settings">
+            <legend>Notifications for this account</legend>
+            <label><input id="notifyEnergyFull" type="checkbox">Energy Full</label>
+            <label><input id="notifyDailyZero" type="checkbox">Daily 0/100</label>
+            <label><input id="notifyWeeklyIncomplete" type="checkbox">Weekly Incomplete</label>
+            <label><input id="notifyCheckinFailed" type="checkbox">Check-in Failed</label>
+          </fieldset>
+          <label class="manager-field">Update account_token<textarea id="managerTokenResponse" rows="4" placeholder='Tempel respons {"data":{"content":"TOKEN"}}'></textarea></label>
+          <div id="managerStatus" class="manager-status">Ready.</div>
+          <div class="manager-action-grid">
+            <button id="managerSave" class="action-button primary" type="button">Save Settings</button>
+            <button id="managerSync" class="action-button" type="button">Sync This Account</button>
+            <button id="managerUpdateToken" class="action-button" type="button">Update Token</button>
+            <button id="managerDelete" class="danger-action" type="button">Delete Account</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div id="diagnosticsOverlay" class="utility-overlay" hidden>
+    <section class="utility-modal diagnostics-modal" role="dialog" aria-modal="true" aria-labelledby="diagnosticsTitle">
+      <header class="utility-header">
+        <div><span>SYSTEM STATUS</span><h2 id="diagnosticsTitle">System Diagnostics</h2></div>
+        <button id="closeDiagnostics" class="utility-close" type="button" aria-label="Tutup"><svg class="nexus-icon"><use href="#nx-close"></use></svg></button>
+      </header>
+      <div class="diagnostics-grid">
+        <div><span>Frontend version</span><strong id="diagFrontendVersion">30.0</strong></div>
+        <div><span>GAS API version</span><strong id="diagApiVersion">Checking...</strong></div>
+        <div><span>Available actions</span><strong id="diagActions">—</strong></div>
+        <div><span>Last successful request</span><strong id="diagLastSuccess">—</strong></div>
+        <div><span>Average response time</span><strong id="diagAvgResponse">—</strong></div>
+        <div><span>Notification permission</span><strong id="diagNotifications">—</strong></div>
+        <div><span>Browser storage</span><strong id="diagStorage">—</strong></div>
+        <div><span>Selected token health</span><strong id="diagTokenStatus">—</strong></div>
+        <div><span>PWA status</span><strong id="diagPwaStatus">—</strong></div>
+      </div>
+      <div class="diagnostics-actions">
+        <button id="diagnosticsRefresh" class="action-button" type="button">Run Diagnostics</button>
+        <button id="installPwaButton" class="action-button primary" type="button" hidden><svg class="nexus-icon"><use href="#nx-download"></use></svg>Install App</button>
+        <button id="clearAppCacheButton" class="action-button" type="button">Clear App Cache</button>
+      </div>
     </section>
   </div>
 
@@ -948,6 +1117,14 @@
        class="toast-region"
        aria-live="polite"></div>
 
+  <nav class="mobile-bottom-nav" aria-label="Mobile navigation">
+    <button id="bottomDashboard" class="mobile-bottom-item active" type="button"><svg class="nexus-icon"><use href="#nx-dashboard"></use></svg><span>Dashboard</span></button>
+    <button id="bottomAccounts" class="mobile-bottom-item" type="button"><svg class="nexus-icon"><use href="#nx-accounts"></use></svg><span>Accounts</span></button>
+    <button id="bottomCheckin" class="mobile-bottom-item primary" type="button"><svg class="nexus-icon"><use href="#nx-check"></use></svg><span>Check-in</span></button>
+    <button id="bottomAlerts" class="mobile-bottom-item" type="button"><svg class="nexus-icon"><use href="#nx-bell"></use></svg><span>Alerts</span><em id="bottomAlertBadge" hidden>0</em></button>
+    <button id="bottomSettings" class="mobile-bottom-item" type="button"><svg class="nexus-icon"><use href="#nx-settings"></use></svg><span>Settings</span></button>
+  </nav>
+
   <div id="loginLayer" class="login-layer">
     <section class="login-visual" aria-hidden="true">
       <div class="login-visual-grid"></div>
@@ -1051,7 +1228,7 @@
     </form>
   </div>
 
-  <script src="./config.js?v=20260724-daily29"></script>
-  <script src="./dashboard.js?v=20260724-daily29"></script>
+  <script src="./config.js?v=20260724-complete30"></script>
+  <script src="./dashboard.js?v=20260724-complete30"></script>
 </body>
 </html>

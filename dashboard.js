@@ -23,6 +23,15 @@ const DEVICE_NOTIFICATION_ICON =
   "https://raw.githubusercontent.com/Yue-plus/endfield_icons/main/svg/endfield-industries.svg";
 const ACCOUNT_TOKEN_API_URL =
   "https://web-api.gryphline.com/cookie_store/account_token";
+const FRONTEND_VERSION = "30.0";
+const REQUEST_METRICS_KEY = "endfield_request_metrics_v1";
+const LAST_CHECKIN_KEY = "endfield_last_checkin_v1";
+const DEFAULT_NOTIFICATION_SETTINGS = Object.freeze({
+  energyFull: true,
+  dailyZero: true,
+  weeklyIncomplete: false,
+  checkinFailed: true
+});
 
 const FALLBACK_ACCOUNTS = [
   { slug: "muzaka" },
@@ -50,7 +59,15 @@ const state = {
   notificationPanelOpen: false,
   accountTokenApiOpened: false,
   pendingDeleteSlug: null,
-  deletingAccount: false
+  deletingAccount: false,
+  managerSlug: null,
+  backendCapabilities: null,
+  requestDurations: [],
+  lastSuccessfulRequestAt: null,
+  freshnessTimer: null,
+  deferredInstallPrompt: null,
+  pwaRegistered: false,
+  launchHandled: false
 };
 
 const operationProgressState = {
@@ -115,6 +132,49 @@ function gasConfigured() {
     GAS_URL.startsWith("https://script.google.com/") &&
     GAS_URL.includes("/exec")
   );
+}
+
+function loadRequestMetrics() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(REQUEST_METRICS_KEY) || "[]");
+    state.requestDurations = Array.isArray(parsed) ? parsed.filter(Number.isFinite).slice(-20) : [];
+  } catch (_) {
+    state.requestDurations = [];
+  }
+}
+
+function recordRequestMetric(duration, successful) {
+  if (Number.isFinite(duration)) {
+    state.requestDurations.push(Math.round(duration));
+    state.requestDurations = state.requestDurations.slice(-20);
+    try { localStorage.setItem(REQUEST_METRICS_KEY, JSON.stringify(state.requestDurations)); } catch (_) {}
+  }
+  if (successful) {
+    state.lastSuccessfulRequestAt = new Date().toISOString();
+    const el = $("#lastSuccessfulRequest");
+    if (el) el.textContent = formatDateWib(state.lastSuccessfulRequestAt, true);
+  }
+}
+
+function delay(milliseconds) {
+  return new Promise(resolve => setTimeout(resolve, milliseconds));
+}
+
+async function gasRequestWithRetry(action, parameters = {}, maxAttempts = 3) {
+  let lastError;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const startedAt = performance.now();
+    try {
+      const result = await gasRequest(action, parameters);
+      recordRequestMetric(performance.now() - startedAt, true);
+      return result;
+    } catch (error) {
+      lastError = error;
+      recordRequestMetric(performance.now() - startedAt, false);
+      if (attempt < maxAttempts) await delay(700 * (2 ** (attempt - 1)));
+    }
+  }
+  throw lastError;
 }
 
 function gasRequest(action, parameters = {}) {
@@ -361,7 +421,31 @@ function allAccountEntries() {
   return [
     ...baseEntries,
     ...linkedEntries
-  ];
+  ].sort((first, second) => {
+    const firstPrimary = Boolean(first.settings?.primary);
+    const secondPrimary = Boolean(second.settings?.primary);
+    if (firstPrimary !== secondPrimary) return firstPrimary ? -1 : 1;
+    const firstOrder = Number(first.settings?.order ?? first.slot_index ?? 999);
+    const secondOrder = Number(second.settings?.order ?? second.slot_index ?? 999);
+    return firstOrder - secondOrder;
+  });
+}
+
+function accountDisplayName(account) {
+  return String(
+    account?.display_name ||
+    account?.settings?.displayName ||
+    account?.profile?.name ||
+    account?.slug ||
+    "Account"
+  );
+}
+
+function notificationSettingsForAccount(account) {
+  return {
+    ...DEFAULT_NOTIFICATION_SETTINGS,
+    ...(account?.settings?.notifications || {})
+  };
 }
 
 function selectedAccount() {
@@ -468,6 +552,8 @@ $("#loginForm").addEventListener("submit", async event => {
       action: "state",
       manual: false
     });
+
+    handleLaunchShortcut();
   } finally {
     button.disabled = false;
 
@@ -511,10 +597,7 @@ function renderAccountList() {
             type="button"
             data-account="${escapeHtml(account.slug)}">
             <span class="account-mini-name">
-              ${escapeHtml(
-                profile.name ||
-                "—"
-              )}
+              ${escapeHtml(accountDisplayName(account))}
             </span>
             <span class="account-mini-meta">
               UID ${escapeHtml(
@@ -526,6 +609,7 @@ function renderAccountList() {
               )}
               • Lv.${escapeHtml(level)}
             </span>
+            <span class="account-mini-freshness ${freshnessForAccount(account).key}">${freshnessForAccount(account).label}</span>
           </button>
 
           ${
@@ -619,6 +703,23 @@ function renderTask(prefix, task) {
       valid
         ? `${Math.round(percent)}%`
         : "—%";
+  }
+
+  const taskState =
+    !valid
+      ? { label: "WAITING", key: "waiting" }
+      : percent <= 0
+        ? { label: "NOT STARTED", key: "empty" }
+        : percent < 80
+          ? { label: "IN PROGRESS", key: "progress" }
+          : percent < 100
+            ? { label: "NEAR COMPLETE", key: "near" }
+            : { label: "COMPLETED", key: "complete" };
+
+  const stateElement = $(`#${prefix}State`);
+  if (stateElement) {
+    stateElement.textContent = taskState.label;
+    stateElement.className = `task-state ${taskState.key}`;
   }
 
   setProgress(
@@ -763,6 +864,27 @@ function startSanityCountdown(sanity) {
     setInterval(update, 1000);
 }
 
+function timestampAgeSeconds(value) {
+  const time = new Date(value || 0).getTime();
+  if (!Number.isFinite(time) || time <= 0) return Infinity;
+  return Math.max(0, (Date.now() - time) / 1000);
+}
+
+function freshnessFromTimestamp(value, available = true) {
+  if (!available || !value) return { key: "offline", label: "OFFLINE", age: Infinity };
+  const age = timestampAgeSeconds(value);
+  if (age < 15) return { key: "live", label: "LIVE", age };
+  if (age <= 60) return { key: "delayed", label: "DELAYED", age };
+  return { key: "stale", label: "STALE", age };
+}
+
+function freshnessForAccount(account) {
+  return freshnessFromTimestamp(
+    account?.live_updated_at || account?.profile_updated_at || state.data?.updated_at,
+    Boolean(account?.live_available || account?.profile_available)
+  );
+}
+
 function setSourceStatus(element, ok, stale = false) {
   element.className = "";
 
@@ -893,7 +1015,7 @@ function renderSelectedAccount() {
   const sanity = live.sanity || null;
 
   $("#profileName").textContent =
-    profile.name || "—";
+    accountDisplayName(account);
 
   $("#profileLevelLabel").textContent =
     `Lv.${formatNumber(profile.level)}`;
@@ -946,7 +1068,7 @@ function renderSelectedAccount() {
     );
 
   $("#selectedAccountStatus").textContent =
-    profile.name || "—";
+    accountDisplayName(account);
 
   setSourceStatus(
     $("#profileSourceStatus"),
@@ -959,6 +1081,20 @@ function renderSelectedAccount() {
     Boolean(account.live_available),
     Boolean(account.live_stale)
   );
+
+  const freshness = freshnessForAccount(account);
+  const freshnessElement = $("#dataFreshnessStatus");
+  if (freshnessElement) {
+    freshnessElement.textContent = freshness.label;
+    freshnessElement.className = `freshness-badge ${freshness.key}`;
+  }
+
+  const lastSuccessElement = $("#lastSuccessfulRequest");
+  if (lastSuccessElement) {
+    lastSuccessElement.textContent = state.lastSuccessfulRequestAt
+      ? formatDateWib(state.lastSuccessfulRequestAt, true)
+      : "—";
+  }
 
   const errors =
     Array.isArray(account.errors)
@@ -976,6 +1112,32 @@ function renderSelectedAccount() {
     errorsElement.textContent = "";
   }
 
+}
+
+function renderAccountSummary() {
+  const accounts = allAccountEntries();
+  const online = accounts.filter(account => freshnessForAccount(account).key !== "offline").length;
+  const energyFull = accounts.filter(account => {
+    const current = Number(account.live?.sanity?.current);
+    const max = Number(account.live?.sanity?.max);
+    return Number.isFinite(current) && Number.isFinite(max) && max > 0 && current >= max;
+  }).length;
+  const tasksIncomplete = accounts.filter(account => {
+    const daily = account.live?.daily_activity;
+    const weekly = account.live?.weekly_routine;
+    return (daily && Number(daily.current) < Number(daily.max)) || (weekly && Number(weekly.current) < Number(weekly.max));
+  }).length;
+  $("#summaryAccountsOnline").textContent = `${online}/${accounts.length}`;
+  $("#summaryEnergyFull").textContent = String(energyFull);
+  $("#summaryTasksIncomplete").textContent = String(tasksIncomplete);
+  $("#summaryLastCheckin").textContent = localStorage.getItem(LAST_CHECKIN_KEY) || "Waiting";
+}
+
+function refreshFreshnessIndicators() {
+  if (!state.data) return;
+  renderAccountList();
+  renderSelectedAccountSyncMeta();
+  renderAccountSummary();
 }
 
 function readJsonStorage(key, fallback) {
@@ -1173,6 +1335,12 @@ function renderNotificationCenter() {
     unreadCount > 99
       ? "99+"
       : String(unreadCount);
+
+  const bottomBadge = $("#bottomAlertBadge");
+  if (bottomBadge) {
+    bottomBadge.hidden = unreadCount === 0;
+    bottomBadge.textContent = unreadCount > 99 ? "99+" : String(unreadCount);
+  }
 
   if (state.notifications.length === 0) {
     list.innerHTML = `
@@ -1460,7 +1628,7 @@ function cleanupOldActivityConditions(todayKey) {
     state.notificationConditions
   ).forEach(key => {
     if (
-      key.startsWith("activity-zero:") &&
+      (key.startsWith("activity-zero:") || key.startsWith("weekly-incomplete:")) &&
       !key.endsWith(`:${todayKey}`)
     ) {
       delete state.notificationConditions[key];
@@ -1500,12 +1668,8 @@ function evaluateGameNotifications(
         return;
       }
 
-      const accountName =
-        String(
-          profile.name ||
-          account.display_name ||
-          accountSlug
-        );
+      const accountName = accountDisplayName({ slug: accountSlug, ...account });
+      const notificationSettings = notificationSettingsForAccount(account);
 
       const sanityCurrent =
         Number(live.sanity?.current);
@@ -1528,6 +1692,7 @@ function evaluateGameNotifications(
         ] === true;
 
       if (
+        notificationSettings.energyFull &&
         energyFull &&
         !energyWasFull
       ) {
@@ -1568,6 +1733,7 @@ function evaluateGameNotifications(
         `${todayKey}`;
 
       if (
+        notificationSettings.dailyZero &&
         activityIsZero &&
         state.notificationConditions[
           activityConditionKey
@@ -1585,6 +1751,21 @@ function evaluateGameNotifications(
         state.notificationConditions[
           activityConditionKey
         ] = true;
+      }
+
+      const weeklyCurrent = Number(live.weekly_routine?.current);
+      const weeklyMax = Number(live.weekly_routine?.max);
+      const weeklyIncomplete = Number.isFinite(weeklyCurrent) && Number.isFinite(weeklyMax) && weeklyMax > 0 && weeklyCurrent < weeklyMax;
+      const weeklyKey = `weekly-incomplete:${accountSlug}:${todayKey}`;
+      if (notificationSettings.weeklyIncomplete && weeklyIncomplete && state.notificationConditions[weeklyKey] !== true) {
+        addGameNotification({
+          type: "activity",
+          accountSlug,
+          title: "Weekly Routine belum selesai",
+          message: `${accountName}: ${weeklyCurrent}/${weeklyMax}.`,
+          toastType: "warning"
+        });
+        state.notificationConditions[weeklyKey] = true;
       }
     }
   );
@@ -1684,6 +1865,8 @@ function createDataSignature(dashboardState) {
             account.display_name ?? null,
           server_name:
             account.server_name ?? null,
+          display_settings:
+            account.settings ?? null,
           profile: {
             name:
               profile.name ?? null,
@@ -1798,6 +1981,7 @@ function applyDashboardState(dashboardState, source) {
     nextSignature !== previousSignature;
 
   state.data = dashboardState;
+  document.body.classList.remove("is-loading-dashboard", "has-load-error");
   state.lastRevision =
     dashboardState.revision ??
     dashboardState.updated_at ??
@@ -1812,6 +1996,7 @@ function applyDashboardState(dashboardState, source) {
   ) {
     renderAccountList();
     renderSelectedAccount();
+    renderAccountSummary();
   } else {
 
     renderSelectedAccountSyncMeta();
@@ -2210,7 +2395,7 @@ async function syncState({
 
   try {
     const payload =
-      await gasRequest(action);
+      await gasRequestWithRetry(action, {}, manual ? 3 : 2);
 
     const dashboardState =
       normalizeDashboardPayload(
@@ -2242,6 +2427,11 @@ async function syncState({
       "[SYNC]",
       error
     );
+
+    if (!state.data) {
+      document.body.classList.remove("is-loading-dashboard");
+      document.body.classList.add("has-load-error");
+    }
 
     if (
       manual ||
@@ -2295,8 +2485,37 @@ async function syncState({
   }
 }
 
+async function syncSelectedAccount() {
+  const slug = state.selectedSlug;
+  const button = $("#syncSelectedButton");
+  if (!slug || state.requestInProgress) {
+    showToast({ type: "info", title: "Sync queued", message: "Tunggu sinkronisasi aktif selesai.", duration: 3200 });
+    return;
+  }
+  state.requestInProgress = true;
+  button.disabled = true;
+  try {
+    const response = await gasRequestWithRetry("syncaccount", { slug }, 3);
+    const dashboardState = normalizeDashboardPayload(response);
+    applyDashboardState(dashboardState, "manual");
+    showToast({ type: "success", title: "Account synchronized", message: `${accountDisplayName(selectedAccount())} berhasil diperbarui.` });
+  } catch (error) {
+    showToast({ type: "error", title: "Account sync failed", message: error?.message || "Gagal menyinkronkan akun." });
+  } finally {
+    state.requestInProgress = false;
+    button.disabled = false;
+  }
+}
+
 function startAutoSync() {
   stopAutoSync();
+
+  const firstDelay = Math.min(AUTO_SYNC_MS, 1800 + Math.floor(Math.random() * 1200));
+  setTimeout(() => {
+    if (document.visibilityState === "visible" && sessionStorage.getItem(SESSION_KEY) === "1") {
+      syncState({ action: "state", manual: false });
+    }
+  }, firstDelay);
 
   state.autoTimer = setInterval(() => {
     if (
@@ -2547,6 +2766,22 @@ async function runCheckin() {
 
     checkinSuccessful =
       summary.type !== "error";
+
+    localStorage.setItem(LAST_CHECKIN_KEY, summary.type === "error" ? "Failed" : summary.type === "info" ? "Already done" : "Success");
+    renderAccountSummary();
+    if (summary.type === "error") {
+      allAccountEntries().forEach(account => {
+        if (notificationSettingsForAccount(account).checkinFailed) {
+          addGameNotification({
+            type: "activity",
+            accountSlug: account.slug,
+            title: "Check-in failed",
+            message: `${accountDisplayName(account)}: periksa hasil check-in.`,
+            toastType: "error"
+          });
+        }
+      });
+    }
 
     showToast({
       type: summary.type,
@@ -3423,6 +3658,157 @@ async function pasteAccountTokenFromClipboard({
   }
 }
 
+function setUtilityOverlay(id, open) {
+  const element = $(id);
+  if (!element) return;
+  element.hidden = !open;
+  document.body.classList.toggle("utility-open", open);
+}
+
+function selectedManagerAccount() {
+  return accountBySlug(state.managerSlug) || selectedAccount();
+}
+
+function renderAccountManager() {
+  const accounts = allAccountEntries();
+  if (!state.managerSlug || !accounts.some(account => account.slug === state.managerSlug)) state.managerSlug = state.selectedSlug || accounts[0]?.slug;
+  const account = selectedManagerAccount();
+  if (!account) return;
+  $("#managerAccountList").innerHTML = accounts.map(item => `
+    <button class="manager-account-item ${item.slug === state.managerSlug ? "active" : ""}" type="button" data-manager-account="${escapeHtml(item.slug)}">
+      <span>${escapeHtml(accountDisplayName(item))}</span>
+      <small>${escapeHtml(item.profile?.uid || item.uid || "UID —")}</small>
+      ${item.settings?.primary ? getNexusIconSvg("star") : ""}
+    </button>`).join("");
+  $$("[data-manager-account]").forEach(button => button.addEventListener("click", () => { state.managerSlug = button.dataset.managerAccount; renderAccountManager(); }));
+  $("#managerAccountName").textContent = accountDisplayName(account);
+  $("#managerAccountUid").textContent = `UID ${account.profile?.uid || account.uid || "—"}`;
+  $("#managerDisplayName").value = account.display_name || account.settings?.displayName || "";
+  $("#managerPrimaryButton").classList.toggle("active", Boolean(account.settings?.primary));
+  const settings = notificationSettingsForAccount(account);
+  $("#notifyEnergyFull").checked = settings.energyFull;
+  $("#notifyDailyZero").checked = settings.dailyZero;
+  $("#notifyWeeklyIncomplete").checked = settings.weeklyIncomplete;
+  $("#notifyCheckinFailed").checked = settings.checkinFailed;
+  $("#managerDelete").hidden = !isLinkedAccountSlug(account.slug);
+  $("#managerStatus").textContent = freshnessForAccount(account).label;
+}
+
+function openAccountManager(slug = state.selectedSlug) {
+  closeSidebar();
+  state.managerSlug = slug;
+  renderAccountManager();
+  setUtilityOverlay("#accountManagerOverlay", true);
+}
+
+function closeAccountManager() { setUtilityOverlay("#accountManagerOverlay", false); }
+
+async function saveManagerSettings() {
+  const account = selectedManagerAccount();
+  if (!account) return;
+  const notifications = {
+    energyFull: $("#notifyEnergyFull").checked,
+    dailyZero: $("#notifyDailyZero").checked,
+    weeklyIncomplete: $("#notifyWeeklyIncomplete").checked,
+    checkinFailed: $("#notifyCheckinFailed").checked
+  };
+  $("#managerStatus").textContent = "Saving...";
+  try {
+    const response = await gasRequestWithRetry("updateaccount", {
+      slug: account.slug,
+      display_name: $("#managerDisplayName").value.trim(),
+      primary: $("#managerPrimaryButton").classList.contains("active") ? "1" : "0",
+      notifications: JSON.stringify(notifications)
+    }, 2);
+    applyDashboardState(normalizeDashboardPayload(response), "manual");
+    renderAccountManager();
+    showToast({ type: "success", title: "Account settings saved", message: "Nama, primary account, dan notifikasi diperbarui." });
+  } catch (error) {
+    $("#managerStatus").textContent = error?.message || "Save failed";
+  }
+}
+
+async function reorderManagerAccount(direction) {
+  const accounts = allAccountEntries();
+  const index = accounts.findIndex(account => account.slug === state.managerSlug);
+  const target = index + direction;
+  if (index < 0 || target < 0 || target >= accounts.length) return;
+  [accounts[index], accounts[target]] = [accounts[target], accounts[index]];
+  try {
+    const response = await gasRequestWithRetry("reorderaccounts", { order: accounts.map(account => account.slug).join(",") }, 2);
+    applyDashboardState(normalizeDashboardPayload(response), "manual");
+    renderAccountManager();
+  } catch (error) { showToast({ type: "error", title: "Reorder failed", message: error?.message || "Gagal mengurutkan akun." }); }
+}
+
+async function updateManagerToken() {
+  const token = extractAccountToken($("#managerTokenResponse").value);
+  if (!token) { $("#managerStatus").textContent = "account_token tidak ditemukan."; return; }
+  try {
+    const response = await gasRequest("addaccount", { account_token: token });
+    if (!response?.success) throw new Error(response?.message || "Token update failed");
+    applyDashboardState(response.state, "manual");
+    $("#managerTokenResponse").value = "";
+    renderAccountManager();
+    showToast({ type: "success", title: "Token updated", message: "Token akun berhasil diperbarui." });
+  } catch (error) { $("#managerStatus").textContent = error?.message || "Token update failed"; }
+}
+
+async function syncManagerAccount() {
+  const account = selectedManagerAccount();
+  if (!account) return;
+  state.selectedSlug = account.slug;
+  localStorage.setItem(SELECTED_ACCOUNT_KEY, account.slug);
+  closeAccountManager();
+  await syncSelectedAccount();
+}
+
+function averageRequestDuration() {
+  if (!state.requestDurations.length) return null;
+  return Math.round(state.requestDurations.reduce((sum, value) => sum + value, 0) / state.requestDurations.length);
+}
+
+async function refreshDiagnostics() {
+  $("#diagFrontendVersion").textContent = FRONTEND_VERSION;
+  $("#diagLastSuccess").textContent = state.lastSuccessfulRequestAt ? formatDateWib(state.lastSuccessfulRequestAt, true) : "—";
+  const average = averageRequestDuration();
+  $("#diagAvgResponse").textContent = average === null ? "—" : `${average} ms`;
+  $("#diagNotifications").textContent = "Notification" in window ? Notification.permission : "unsupported";
+  try { localStorage.setItem("__ef_test", "1"); localStorage.removeItem("__ef_test"); $("#diagStorage").textContent = "Available"; } catch (_) { $("#diagStorage").textContent = "Blocked"; }
+  const account = selectedAccount();
+  $("#diagTokenStatus").textContent = account?.profile_available && account?.live_available ? "VALID" : account?.errors?.length ? "NEEDS ATTENTION" : "UNKNOWN";
+  $("#diagPwaStatus").textContent = window.matchMedia("(display-mode: standalone)").matches ? "Installed" : state.pwaRegistered ? "Ready" : "Unavailable";
+  try {
+    const response = await gasRequestWithRetry("capabilities", {}, 2);
+    state.backendCapabilities = response;
+    $("#diagApiVersion").textContent = response.apiVersion || "Unknown";
+    $("#diagActions").textContent = Array.isArray(response.actions) ? response.actions.join(", ") : "—";
+  } catch (error) {
+    $("#diagApiVersion").textContent = "Offline";
+    $("#diagActions").textContent = error?.message || "Unavailable";
+  }
+}
+
+function openDiagnostics() { closeSidebar(); setUtilityOverlay("#diagnosticsOverlay", true); refreshDiagnostics(); }
+function closeDiagnostics() { setUtilityOverlay("#diagnosticsOverlay", false); }
+
+async function installPwa() {
+  if (!state.deferredInstallPrompt) return;
+  state.deferredInstallPrompt.prompt();
+  await state.deferredInstallPrompt.userChoice;
+  state.deferredInstallPrompt = null;
+  $("#installPwaButton").hidden = true;
+  refreshDiagnostics();
+}
+
+async function clearAppCache() {
+  if ("caches" in window) {
+    const keys = await caches.keys();
+    await Promise.all(keys.map(key => caches.delete(key)));
+  }
+  showToast({ type: "success", title: "App cache cleared", message: "Muat ulang halaman untuk mengambil versi terbaru." });
+}
+
 function accountBySlug(slug) {
   return allAccountEntries().find(
     account => account.slug === slug
@@ -3582,7 +3968,7 @@ function backendDeploymentErrorMessage(response) {
   ) {
     return (
       "Backend Google Apps Script masih versi lama. " +
-      "Timpa Code.gs v23, buat New version pada deployment, " +
+      "Timpa Code.gs v30, buat New version pada deployment, " +
       "lalu pastikan config.js memakai URL /exec deployment tersebut."
     );
   }
@@ -3894,6 +4280,55 @@ function bindConnectAccount() {
   );
 }
 
+function bindAccountManagerAndDiagnostics() {
+  $("#accountManagerButton").addEventListener("click", () => openAccountManager());
+  $("#closeAccountManager").addEventListener("click", closeAccountManager);
+  $("#accountManagerOverlay").addEventListener("click", event => { if (event.target === $("#accountManagerOverlay")) closeAccountManager(); });
+  $("#managerPrimaryButton").addEventListener("click", event => event.currentTarget.classList.toggle("active"));
+  $("#managerMoveUp").addEventListener("click", () => reorderManagerAccount(-1));
+  $("#managerMoveDown").addEventListener("click", () => reorderManagerAccount(1));
+  $("#managerSave").addEventListener("click", saveManagerSettings);
+  $("#managerSync").addEventListener("click", syncManagerAccount);
+  $("#managerUpdateToken").addEventListener("click", updateManagerToken);
+  $("#managerDelete").addEventListener("click", () => { const account = selectedManagerAccount(); if (account) { closeAccountManager(); openDeleteAccountModal(account.slug); } });
+  $("#diagnosticsButton").addEventListener("click", openDiagnostics);
+  $("#closeDiagnostics").addEventListener("click", closeDiagnostics);
+  $("#diagnosticsOverlay").addEventListener("click", event => { if (event.target === $("#diagnosticsOverlay")) closeDiagnostics(); });
+  $("#diagnosticsRefresh").addEventListener("click", refreshDiagnostics);
+  $("#installPwaButton").addEventListener("click", installPwa);
+  $("#clearAppCacheButton").addEventListener("click", clearAppCache);
+  $("#syncSelectedButton").addEventListener("click", syncSelectedAccount);
+  $("#bottomDashboard").addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+  $("#bottomAccounts").addEventListener("click", () => openAccountManager());
+  $("#bottomCheckin").addEventListener("click", runCheckin);
+  $("#bottomAlerts").addEventListener("click", () => toggleNotificationPanel(true));
+  $("#bottomSettings").addEventListener("click", openDiagnostics);
+}
+
+function registerPwa() {
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./sw.js").then(() => { state.pwaRegistered = true; }).catch(() => { state.pwaRegistered = false; });
+  }
+  window.addEventListener("beforeinstallprompt", event => {
+    event.preventDefault();
+    state.deferredInstallPrompt = event;
+    const button = $("#installPwaButton");
+    if (button) button.hidden = false;
+  });
+  const updateOffline = () => { $("#offlineBanner").hidden = navigator.onLine; document.body.classList.toggle("is-offline", !navigator.onLine); };
+  window.addEventListener("online", updateOffline);
+  window.addEventListener("offline", updateOffline);
+  updateOffline();
+}
+
+function handleLaunchShortcut() {
+  if (state.launchHandled || sessionStorage.getItem(SESSION_KEY) !== "1") return;
+  const parameters = new URLSearchParams(window.location.search);
+  state.launchHandled = true;
+  if (parameters.get("view") === "accounts") openAccountManager();
+  if (parameters.get("action") === "checkin") setTimeout(runCheckin, 500);
+}
+
 const bootSequenceState = {
   value: 0,
   timer: null
@@ -4010,6 +4445,9 @@ async function initialize() {
     bindNotificationCenter();
     bindConnectAccount();
     bindDeleteAccount();
+    bindAccountManagerAndDiagnostics();
+    loadRequestMetrics();
+    registerPwa();
     renderNotificationCenter();
 
     updateBootSequence(
@@ -4024,7 +4462,9 @@ async function initialize() {
 
     renderAccountList();
     renderSelectedAccount();
+    renderAccountSummary();
     bindCopyUidInteraction();
+    state.freshnessTimer = setInterval(refreshFreshnessIndicators, 15000);
 
     updateBootSequence(
       61,
@@ -4055,6 +4495,8 @@ async function initialize() {
         94,
         "Live telemetry synchronized."
       );
+
+      handleLaunchShortcut();
     }
 
     window.addEventListener(
@@ -4071,6 +4513,7 @@ async function initialize() {
     document.addEventListener(
       "visibilitychange",
       () => {
+        document.body.classList.toggle("animations-paused", document.hidden);
         if (!document.hidden) {
           if (
             sessionStorage.getItem(
@@ -4091,6 +4534,7 @@ async function initialize() {
       "beforeunload",
       () => {
         stopAutoSync();
+        if (state.freshnessTimer !== null) clearInterval(state.freshnessTimer);
       }
     );
   } finally {
