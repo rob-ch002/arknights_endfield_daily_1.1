@@ -80,7 +80,6 @@ button {
     );
 }
 
-
 .background-media::before {
   content: "";
   position: absolute;
@@ -463,7 +462,6 @@ body::before {
   color: var(--muted);
   font-size: 12px;
 }
-
 
 .topbar-status {
   display: flex;
@@ -928,7 +926,6 @@ body::before {
   background: #ff3b4f;
 }
 
-
 .action-button,
 .nav-button {
   --operation-progress: 0%;
@@ -938,10 +935,6 @@ body::before {
   isolation: isolate;
 }
 
-/*
- * COLOR CHANGING PROGRESS
- * Lapisan transparan memenuhi tombol mengikuti persentase.
- */
 .action-button.is-loading::before,
 .nav-button.is-loading::before,
 .action-button.is-success::before,
@@ -988,10 +981,6 @@ body::before {
     border-color 0.22s ease;
 }
 
-/*
- * Bar utama berada di dasar tombol.
- * Highlight putih berjalan di atas warna progress.
- */
 .action-button.is-loading::after,
 .nav-button.is-loading::after,
 .action-button.is-success::after,
@@ -1083,7 +1072,6 @@ body::before {
   z-index: 4;
 }
 
-/* Status berhasil. */
 .action-button.is-success,
 .nav-button.is-success {
   --operation-progress: 100%;
@@ -1098,7 +1086,6 @@ body::before {
     0 0 22px rgba(53, 229, 139, 0.13);
 }
 
-/* Status gagal juga ditampilkan selama 3 detik. */
 .action-button.is-error,
 .nav-button.is-error {
   --operation-progress: 100%;
@@ -1390,7 +1377,6 @@ body::before {
   font-size: 14px;
 }
 
-
 .feature-icon {
   width: 36px;
   height: 36px;
@@ -1525,13 +1511,6 @@ body::before {
   line-height: 1.45;
   word-break: break-word;
 }
-
-
-/* ==========================================================
-   SANITY RADIAL GAUGE
-   Inspired by Sneat's radialBar layout, recreated in pure SVG
-   to avoid adding the heavy ApexCharts runtime.
-   ========================================================== */
 
 .stamina-body {
   min-height: 260px;
@@ -1710,7 +1689,6 @@ body::before {
   text-align: center;
 }
 
-/* Full energy changes the arc to success green. */
 .sanity-radial.is-full .sanity-radial-progress {
   stroke: #35e58b;
   filter:
@@ -1729,7 +1707,6 @@ body::before {
   color: #61eea3;
 }
 
-/* Low energy receives a slightly stronger red warning. */
 .sanity-radial.is-low .sanity-radial-progress {
   stroke: #ff3048;
   filter:
@@ -2163,7 +2140,6 @@ body::before {
       calc(32px + env(safe-area-inset-bottom));
   }
 
-
   .overview-grid {
     grid-template-columns: 1fr;
   }
@@ -2172,11 +2148,6 @@ body::before {
     grid-column: auto;
   }
 
-  /*
-   * Cadangan ruang untuk navigation bar Android.
-   * env(safe-area-inset-bottom) sering 0 pada Android Chrome,
-   * sehingga ditambahkan 82px secara eksplisit.
-   */
   .sidebar-footer {
     padding-bottom:
       calc(82px + env(safe-area-inset-bottom));
@@ -2258,7 +2229,6 @@ body::before {
   }
 }
 
-
 @media (max-width: 360px) {
   .profile-stats {
     grid-template-columns: 1fr;
@@ -2272,7 +2242,6 @@ body::before {
     font-size: 23px;
   }
 }
-
 
 @media (max-width: 540px) {
   .sidebar-nav {
@@ -2293,7 +2262,6 @@ body::before {
     padding-top: 9px;
   }
 }
-
 
 @media (max-width: 820px) {
   .background-media::before {
@@ -2327,12 +2295,6 @@ body::before {
   }
 }
 
-
-/* ==========================================================
-   V18 — RESPONSIVE SANITY CHARGE + TASK ENERGY METERS
-   ========================================================== */
-
-/* Radial size remains balanced in narrow and wide panels. */
 .stamina-body {
   min-height: 260px;
   padding: 12px clamp(14px, 4vw, 20px) 16px;
@@ -2373,10 +2335,6 @@ body::before {
   height: 17px;
 }
 
-/*
- * A bright pulse travels over the 300° path, giving the impression
- * that energy is continuously charging into the segmented gauge.
- */
 .sanity-radial-charge {
   stroke: #fff4f5;
   stroke-width: 6;
@@ -2435,14 +2393,9 @@ body::before {
   margin-top: 8px;
 }
 
-/* The redundant "until stamina is full" line has been removed. */
 .stamina-recovery {
   display: none !important;
 }
-
-/* ----------------------------------------------------------
-   ACTIVITY TASKS — segmented energy rails
-   ---------------------------------------------------------- */
 
 .activity-body {
   min-height: 260px;
@@ -2782,15 +2735,6 @@ body::before {
   }
 }
 
-
-/* ==========================================================
-   V19 — STABLE, GPU-FRIENDLY METER ANIMATIONS
-   ========================================================== */
-
-/*
- * Sanity pulse uses a path length of 100. Animating exactly 100 → 0
- * makes the loop seamless; the previous 105 → 0 produced a visible jump.
- */
 .sanity-radial-charge {
   stroke-dasharray: 4 96;
   animation:
@@ -2824,11 +2768,6 @@ body::before {
   }
 }
 
-/*
- * Keep the task fill itself static. Only a lightweight transform-based
- * highlight moves across it, so updating the width does not restart
- * a background-position animation.
- */
 .task-meter .progress-fill {
   animation: none;
   background-position: 0 0;
@@ -2891,10 +2830,6 @@ body::before {
   }
 }
 
-/*
- * A subtle pulse on the leading edge makes the meters feel active
- * without repainting the entire bar continuously.
- */
 .task-meter .progress-fill {
   box-shadow:
     4px 0 9px
@@ -2905,7 +2840,6 @@ body::before {
     );
 }
 
-/* Reduce constant GPU effects on small/mobile devices. */
 @media (max-width: 820px) {
   .sanity-radial-charge {
     filter:
@@ -2929,11 +2863,6 @@ body::before {
     animation-duration: 6s;
   }
 }
-
-
-/* ==========================================================
-   CONNECT ACCOUNT
-   ========================================================== */
 
 .connect-account-nav {
   margin-top: 8px;
@@ -3273,11 +3202,6 @@ body.connect-account-open {
   }
 }
 
-
-/* ==========================================================
-   V22 — AUTO TOKEN COPY + DELETE ACCOUNT WITH PIN
-   ========================================================== */
-
 .connect-api-button {
   appearance: none;
   cursor: pointer;
@@ -3337,7 +3261,6 @@ body.connect-account-open {
   color: #fff;
 }
 
-/* Account list row with a separate delete control. */
 .account-mini-row {
   position: relative;
   display: grid;
@@ -3384,7 +3307,6 @@ body.connect-account-open {
   stroke-linejoin: miter;
 }
 
-/* Delete modal */
 .delete-account-overlay {
   position: fixed;
   z-index: 72000;
@@ -3597,12 +3519,6 @@ body.delete-account-open {
   }
 }
 
-
-/* =====================================================================
-   ENDFIELD COMMAND NEXUS 2026
-   Full visual replacement layer.
-   ===================================================================== */
-
 .endfield-nexus-2026 {
   --bg: #07090d;
   --bg-deep: #030509;
@@ -3652,8 +3568,6 @@ body.delete-account-open {
     system-ui,
     sans-serif;
 }
-
-/* ---------- Background ---------- */
 
 .endfield-nexus-2026 .background-media {
   background:
@@ -3714,8 +3628,6 @@ body.delete-account-open {
   font-size: clamp(46px, 6vw, 94px);
   letter-spacing: 13px;
 }
-
-/* ---------- Boot terminal ---------- */
 
 .boot-overlay {
   position: fixed;
@@ -3902,8 +3814,6 @@ body.delete-account-open {
   font-size: 7px;
   text-align: center;
 }
-
-/* ---------- Main layout ---------- */
 
 .endfield-nexus-2026 .app-shell {
   grid-template-columns:
@@ -4124,8 +4034,6 @@ body.delete-account-open {
   background: rgba(255, 255, 255, 0.025);
 }
 
-/* ---------- Top bar ---------- */
-
 .endfield-nexus-2026 .topbar {
   height: var(--topbar-height);
   flex-basis: var(--topbar-height);
@@ -4227,8 +4135,6 @@ body.delete-account-open {
     transform: translate3d(410%, 0, 0);
   }
 }
-
-/* ---------- Main content / hero ---------- */
 
 .endfield-nexus-2026 .main-content {
   padding: 30px 34px 64px;
@@ -4392,8 +4298,6 @@ body.delete-account-open {
   font-size: 10px;
 }
 
-/* ---------- Command actions ---------- */
-
 .endfield-nexus-2026 .dashboard-toolbar {
   margin: 0 0 16px;
   padding: 11px;
@@ -4453,10 +4357,6 @@ body.delete-account-open {
   color: #fff;
 }
 
-/*
- * Operation progress: clean percentage fill with a pulsing leading edge.
- * No looping background-position animation.
- */
 .endfield-nexus-2026 .action-button,
 .endfield-nexus-2026 .nav-button {
   --operation-progress: 0%;
@@ -4600,8 +4500,6 @@ body.delete-account-open {
   color: #ffbdc6;
 }
 
-/* ---------- Dashboard panels ---------- */
-
 .endfield-nexus-2026 .overview-grid {
   grid-template-columns:
     minmax(320px, 0.95fr)
@@ -4700,8 +4598,6 @@ body.delete-account-open {
   padding: 18px;
 }
 
-/* Profile */
-
 .endfield-nexus-2026 .profile-identity {
   grid-template-columns: 76px minmax(0, 1fr);
   gap: 17px;
@@ -4790,8 +4686,6 @@ body.delete-account-open {
   font-size: 16px;
 }
 
-/* Sanity */
-
 .endfield-nexus-2026 .stamina-body {
   justify-content: center;
 }
@@ -4864,8 +4758,6 @@ body.delete-account-open {
   min-height: 39px;
   padding: 10px 4px 0;
 }
-
-/* Tasks */
 
 .endfield-nexus-2026 .activity-body {
   justify-content: center;
@@ -4943,8 +4835,6 @@ body.delete-account-open {
   opacity: 0.44;
 }
 
-/* Status rail */
-
 .endfield-nexus-2026 .status-panel {
   margin-top: 16px;
 }
@@ -4975,8 +4865,6 @@ body.delete-account-open {
   margin-top: 8px;
   font-size: 9px;
 }
-
-/* ---------- Notifications / toasts ---------- */
 
 .endfield-nexus-2026 .notification-panel {
   top: calc(var(--topbar-height) + 14px);
@@ -5042,8 +4930,6 @@ body.delete-account-open {
   height: 3px;
 }
 
-/* ---------- Modals ---------- */
-
 .endfield-nexus-2026
 .connect-account-modal,
 .endfield-nexus-2026
@@ -5102,8 +4988,6 @@ body.delete-account-open {
 .endfield-nexus-2026 .connect-auto-copy-status {
   border-radius: 10px;
 }
-
-/* ---------- Login ---------- */
 
 .endfield-nexus-2026 .login-layer {
   z-index: 90000;
@@ -5464,8 +5348,6 @@ body.delete-account-open {
   font-size: 7px;
 }
 
-/* ---------- Responsive ---------- */
-
 @media (max-width: 1280px) {
   .endfield-nexus-2026 {
     --sidebar-width: 252px;
@@ -5723,5 +5605,651 @@ body.delete-account-open {
   .endfield-nexus-2026
   .nav-button.is-loading::after {
     animation-duration: 3s;
+  }
+}
+
+.endfield-nexus-2026 {
+  overflow: hidden;
+}
+
+.endfield-nexus-2026 .app-shell {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.endfield-nexus-2026 .main-shell {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.endfield-nexus-2026 .main-content {
+  min-height: 0;
+  flex: 1 1 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+}
+
+.endfield-nexus-2026 .content-width {
+  padding-bottom:
+    max(
+      48px,
+      env(safe-area-inset-bottom)
+    );
+}
+
+.endfield-nexus-2026 .profile-identity-clean {
+  grid-template-columns:
+    minmax(0, 1fr)
+    auto;
+  align-items: center;
+  min-height: 94px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: 15px;
+  background:
+    linear-gradient(
+      125deg,
+      rgba(255, 52, 77, 0.09),
+      rgba(255, 255, 255, 0.018) 55%
+    );
+}
+
+.profile-command-kicker {
+  display: block;
+  color: var(--signal);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 1.45px;
+}
+
+.endfield-nexus-2026
+.profile-command-copy h3 {
+  margin-top: 8px;
+  font-size: 26px;
+  letter-spacing: -1px;
+}
+
+.endfield-nexus-2026
+.profile-command-copy p {
+  margin-top: 5px;
+  color: #9ea8b4;
+  font-size: 9px;
+}
+
+.profile-link-state {
+  min-width: 104px;
+  padding: 10px;
+  display: grid;
+  grid-template-columns: 8px 1fr;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  background: rgba(7, 10, 15, 0.52);
+}
+
+.profile-link-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--green);
+  box-shadow:
+    0 0 12px
+    rgba(82, 228, 155, 0.68);
+}
+
+.profile-link-state small,
+.profile-link-state strong {
+  display: block;
+}
+
+.profile-link-state small {
+  color: var(--muted-2);
+  font-size: 6px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.profile-link-state strong {
+  margin-top: 3px;
+  color: #a8ffd0;
+  font-size: 8px;
+}
+
+.endfield-nexus-2026 .stamina-body {
+  min-height: 300px;
+  padding: 18px;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.energy-reactor {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.energy-reactor-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.energy-reactor-head > div > span {
+  display: block;
+  color: var(--muted-2);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+.energy-reactor-head strong {
+  display: block;
+  margin-top: 5px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: clamp(38px, 4vw, 52px);
+  line-height: 0.92;
+  letter-spacing: -2.5px;
+}
+
+.energy-reactor-state {
+  padding: 6px 9px;
+  border: 1px solid rgba(255, 52, 77, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 52, 77, 0.06);
+  color: #ff8998;
+  font-size: 7px;
+  font-weight: 800;
+  text-align: right;
+}
+
+.energy-reactor-frame {
+  margin-top: 22px;
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.03),
+      rgba(5, 8, 12, 0.72)
+    );
+}
+
+.energy-reactor-track {
+  position: relative;
+  height: 30px;
+  overflow: hidden;
+  border: 1px solid #303743;
+  border-radius: 8px;
+  background:
+    linear-gradient(
+      180deg,
+      #202631,
+      #11161d
+    );
+  box-shadow:
+    inset 0 4px 14px
+    rgba(0, 0, 0, 0.42);
+}
+
+.energy-reactor-fill {
+  position: absolute;
+  z-index: 1;
+  inset: 3px auto 3px 3px;
+  width: 0;
+  max-width: calc(100% - 6px);
+  overflow: hidden;
+  border-radius: 5px;
+  background:
+    linear-gradient(
+      90deg,
+      #9d1028,
+      #ff344d 54%,
+      #ff9b61
+    );
+  box-shadow:
+    7px 0 18px
+    rgba(255, 52, 77, 0.32);
+  transition:
+    width 0.7s
+    cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.energy-reactor-pulse {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -48px;
+  width: 46px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.72),
+      transparent
+    );
+  transform: skewX(-16deg);
+  animation:
+    energy-reactor-charge
+    2.25s
+    ease-in-out
+    infinite;
+}
+
+.energy-reactor-segments {
+  position: absolute;
+  z-index: 2;
+  inset: 3px;
+  border-radius: 5px;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 18px,
+      rgba(5, 8, 12, 0.72) 18px 21px
+    );
+}
+
+.energy-reactor-scale {
+  margin-top: 7px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  color: #4e5967;
+  font-size: 6px;
+}
+
+.energy-reactor-scale span:nth-child(2),
+.energy-reactor-scale span:nth-child(3),
+.energy-reactor-scale span:nth-child(4) {
+  text-align: center;
+}
+
+.energy-reactor-scale span:last-child {
+  text-align: right;
+}
+
+.energy-reactor-readout {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+
+.energy-reactor-readout > div {
+  min-height: 68px;
+  padding: 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 13px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.03),
+      rgba(255, 255, 255, 0.01)
+    );
+}
+
+.energy-reactor-readout span {
+  display: block;
+  color: var(--muted-2);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.energy-reactor-readout strong {
+  display: block;
+  margin-top: 9px;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.energy-reactor-readout b {
+  color: var(--signal);
+  font-size: 21px;
+}
+
+.energy-reactor-readout small {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.energy-reactor-footer {
+  min-height: 38px;
+  margin-top: 10px;
+  padding-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.energy-reactor-footer span {
+  color: var(--muted-2);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.energy-reactor-footer strong {
+  color: #8994a2;
+  font-size: 7px;
+  text-align: right;
+}
+
+.energy-reactor.is-low
+.energy-reactor-fill {
+  background:
+    linear-gradient(
+      90deg,
+      #74101f,
+      #ff3048
+    );
+}
+
+.energy-reactor.is-low
+.energy-reactor-state {
+  border-color: rgba(255, 48, 72, 0.42);
+  color: #ff7686;
+}
+
+.energy-reactor.is-full
+.energy-reactor-fill {
+  background:
+    linear-gradient(
+      90deg,
+      #158453,
+      #52e49b 60%,
+      #b7ffd7
+    );
+  box-shadow:
+    7px 0 18px
+    rgba(82, 228, 155, 0.32);
+}
+
+.energy-reactor.is-full
+.energy-reactor-state {
+  border-color: rgba(82, 228, 155, 0.4);
+  background: rgba(82, 228, 155, 0.07);
+  color: #9effca;
+}
+
+.energy-reactor.is-full
+.energy-reactor-pulse {
+  animation-duration: 3.2s;
+}
+
+@keyframes energy-reactor-charge {
+  0% {
+    opacity: 0;
+    transform:
+      translate3d(0, 0, 0)
+      skewX(-16deg);
+  }
+
+  18% {
+    opacity: 0.8;
+  }
+
+  72% {
+    opacity: 0.8;
+  }
+
+  100% {
+    opacity: 0;
+    transform:
+      translate3d(520px, 0, 0)
+      skewX(-16deg);
+  }
+}
+
+.endfield-nexus-2026 .activity-icon {
+  font-family: "Space Grotesk", sans-serif;
+  color: var(--signal);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+}
+
+.endfield-nexus-2026 .task-block {
+  padding: 13px 14px 15px;
+}
+
+.endfield-nexus-2026 .task-heading {
+  margin-bottom: 11px;
+}
+
+.endfield-nexus-2026 .task-meter {
+  --meter-progress: 0%;
+  position: relative;
+  height: 18px;
+  padding: 4px;
+  overflow: visible;
+  border: 1px solid #303743;
+  border-radius: 7px;
+  background:
+    linear-gradient(
+      180deg,
+      #202631,
+      #10151c
+    );
+  box-shadow:
+    inset 0 4px 12px
+    rgba(0, 0, 0, 0.4);
+}
+
+.endfield-nexus-2026
+.task-meter::after {
+  z-index: 4;
+  inset: 4px;
+  border-radius: 3px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 16px,
+      rgba(6, 9, 13, 0.72) 16px 18px
+    );
+}
+
+.endfield-nexus-2026
+.task-meter .progress-fill {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  min-width: 0;
+  border-radius: 3px;
+  box-shadow:
+    6px 0 14px
+    color-mix(
+      in srgb,
+      var(--task-color) 34%,
+      transparent
+    );
+  transition:
+    width 0.65s
+    cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.endfield-nexus-2026
+.task-meter .progress-fill::before {
+  content: "";
+  position: absolute;
+  z-index: 5;
+  top: 50%;
+  right: -4px;
+  width: 8px;
+  height: 8px;
+  transform:
+    translateY(-50%)
+    rotate(45deg);
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--task-color) 72%,
+      white
+    );
+  background: var(--task-color);
+  box-shadow:
+    0 0 11px
+    color-mix(
+      in srgb,
+      var(--task-color) 66%,
+      transparent
+    );
+}
+
+.endfield-nexus-2026
+.task-meter .progress-fill::after {
+  top: 0;
+  bottom: 0;
+  left: -34px;
+  width: 32px;
+  opacity: 0.45;
+  animation:
+    mission-signal-sweep
+    2.9s
+    ease-in-out
+    infinite;
+}
+
+.endfield-nexus-2026
+.task-weekly
+.progress-fill::after {
+  animation-delay: -0.95s;
+}
+
+.endfield-nexus-2026
+.task-protocol
+.progress-fill::after {
+  animation-delay: -1.9s;
+}
+
+.endfield-nexus-2026
+.task-meter.is-empty
+.progress-fill::before,
+.endfield-nexus-2026
+.task-meter.is-empty
+.progress-fill::after {
+  display: none;
+}
+
+.endfield-nexus-2026
+.task-meter.is-complete {
+  border-color: rgba(82, 228, 155, 0.42);
+}
+
+.endfield-nexus-2026
+.task-meter.is-complete
+.progress-fill::before {
+  background: #b7ffd7;
+  border-color: #fff;
+}
+
+@keyframes mission-signal-sweep {
+  0% {
+    opacity: 0;
+    transform:
+      translate3d(0, 0, 0)
+      skewX(-16deg);
+  }
+
+  16% {
+    opacity: 0.56;
+  }
+
+  72% {
+    opacity: 0.56;
+  }
+
+  100% {
+    opacity: 0;
+    transform:
+      translate3d(460px, 0, 0)
+      skewX(-16deg);
+  }
+}
+
+.endfield-nexus-2026
+.action-button.is-loading::after,
+.endfield-nexus-2026
+.nav-button.is-loading::after {
+  height: 4px;
+  border-radius: 0 999px 999px 0;
+  background:
+    repeating-linear-gradient(
+      105deg,
+      var(--operation-color) 0 10px,
+      color-mix(
+        in srgb,
+        var(--operation-color) 62%,
+        white
+      ) 10px 14px
+    );
+  animation:
+    command-progress-breathe
+    1.25s
+    ease-in-out
+    infinite;
+}
+
+@keyframes command-progress-breathe {
+  0%,
+  100% {
+    opacity: 0.68;
+  }
+
+  50% {
+    opacity: 1;
+    filter: brightness(1.22);
+  }
+}
+
+@media (max-width: 680px) {
+  .endfield-nexus-2026
+  .profile-identity-clean {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-link-state {
+    width: 100%;
+  }
+
+  .energy-reactor-readout {
+    grid-template-columns: 1fr;
+  }
+
+  .energy-reactor-head {
+    align-items: flex-start;
+  }
+
+  .energy-reactor-state {
+    max-width: 150px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .energy-reactor-pulse,
+  .endfield-nexus-2026
+  .task-meter .progress-fill::after,
+  .endfield-nexus-2026
+  .action-button.is-loading::after,
+  .endfield-nexus-2026
+  .nav-button.is-loading::after {
+    animation-duration: 5s;
   }
 }

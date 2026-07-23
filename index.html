@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap"
         rel="stylesheet">
-  <link rel="stylesheet" href="./dashboard.css?v=20260724-nexus24">
+  <link rel="stylesheet" href="./dashboard.css?v=20260724-nexus25">
 </head>
 
 <body class="endfield-nexus-2026">
@@ -246,7 +246,7 @@
           </div>
 
           <section class="overview-grid">
-            <!-- USER PROFILE -->
+
             <article class="panel user-panel">
               <header class="panel-header">
                 <div>
@@ -257,27 +257,21 @@
               </header>
 
               <div class="user-profile-body">
-                <div class="profile-identity">
-                  <div id="profileAvatar"
-                       class="profile-avatar">
-                    <span
-                      id="profileAvatarFallback"
-                      class="profile-avatar-fallback"
-                      aria-hidden="true">
-                    <svg viewBox="0 0 24 24">
-                      <circle cx="12" cy="8" r="4"></circle>
-                      <path d="M4.5 21c.8-5 3.2-7.5 7.5-7.5S18.7 16 19.5 21"></path>
-                      <path d="M7.5 5.8 5.8 4.2M16.5 5.8l1.7-1.6"></path>
-                    </svg>
-                  </span>
-                    <img id="profileAvatarImage"
-                         alt="Avatar akun"
-                         hidden>
-                  </div>
-
-                  <div>
+                <div class="profile-identity profile-identity-clean">
+                  <div class="profile-command-copy">
+                    <span class="profile-command-kicker">
+                      ACTIVE OPERATOR
+                    </span>
                     <h3 id="profileName">—</h3>
                     <p id="profileLevelLabel">Lv.—</p>
+                  </div>
+
+                  <div class="profile-link-state">
+                    <span class="profile-link-dot"></span>
+                    <div>
+                      <small>Identity Link</small>
+                      <strong>Connected</strong>
+                    </div>
                   </div>
                 </div>
 
@@ -318,7 +312,6 @@
               </div>
             </article>
 
-            <!-- STAMINA -->
             <article class="panel stamina-panel">
               <header class="panel-header">
                 <div>
@@ -331,130 +324,72 @@
               <div class="stamina-body">
                 <div
                   id="sanityGauge"
-                  class="sanity-radial"
+                  class="energy-reactor"
                   role="progressbar"
                   aria-label="Sanity energy"
                   aria-valuemin="0"
                   aria-valuemax="100"
                   aria-valuenow="0">
 
-                  <svg
-                    class="sanity-radial-svg"
-                    viewBox="0 0 220 220"
-                    aria-hidden="true">
-                    <defs>
-                      <linearGradient
-                        id="sanityGaugeGradient"
-                        x1="15%"
-                        y1="85%"
-                        x2="88%"
-                        y2="12%">
-                        <stop
-                          offset="0%"
-                          stop-color="#8d0718"></stop>
-                        <stop
-                          offset="48%"
-                          stop-color="#ff2b3f"></stop>
-                        <stop
-                          offset="100%"
-                          stop-color="#ff8d97"></stop>
-                      </linearGradient>
+                  <div class="energy-reactor-head">
+                    <div>
+                      <span>Core Charge</span>
+                      <strong id="sanityPercent">—%</strong>
+                    </div>
 
-                      <mask id="sanitySegmentMask">
-                        <circle
-                          cx="110"
-                          cy="110"
-                          r="82"
-                          fill="none"
-                          stroke="#ffffff"
-                          stroke-width="17"
-                          pathLength="100"
-                          stroke-dasharray="1.62 1.12"
-                          transform="rotate(120 110 110)">
-                        </circle>
-                      </mask>
-                    </defs>
-
-                    <circle
-                      class="sanity-radial-track"
-                      cx="110"
-                      cy="110"
-                      r="82"
-                      fill="none"
-                      pathLength="100"
-                      stroke-dasharray="83.333 16.667"
-                      transform="rotate(120 110 110)"
-                      mask="url(#sanitySegmentMask)">
-                    </circle>
-
-                    <circle
-                      id="sanityGaugeArc"
-                      class="sanity-radial-progress"
-                      cx="110"
-                      cy="110"
-                      r="82"
-                      fill="none"
-                      pathLength="100"
-                      stroke-dasharray="0 100"
-                      transform="rotate(120 110 110)"
-                      mask="url(#sanitySegmentMask)">
-                    </circle>
-
-                    <path
-                      id="sanityGaugeCharge"
-                      class="sanity-radial-charge"
-                      d="M 69 181.014 A 82 82 0 1 1 151 181.014"
-                      fill="none"
-                      pathLength="100"
-                      stroke-dasharray="5 95"
-                      mask="url(#sanitySegmentMask)">
-                    </path>
-                  </svg>
-
-                  <div class="sanity-radial-center">
-                    <span class="sanity-radial-icon">
-                      <img
-                        src="https://endfield.wiki.gg/images/Sanity.png"
-                        alt=""
-                        referrerpolicy="no-referrer">
+                    <span
+                      id="sanityGaugeCaption"
+                      class="energy-reactor-state">
+                      Waiting for telemetry
                     </span>
-
-                    <strong id="sanityPercent">—%</strong>
-                    <span>Sanity</span>
-                  </div>
-                </div>
-
-                <p
-                  id="sanityGaugeCaption"
-                  class="sanity-radial-caption">
-                  Waiting for live energy data
-                </p>
-
-                <div class="sanity-summary">
-                  <div class="sanity-summary-item">
-                    <span>Current Energy</span>
-                    <strong>
-                      <b id="sanityCurrent">—</b>
-                      <small>
-                        / <span id="sanityMax">—</span>
-                      </small>
-                    </strong>
                   </div>
 
-                  <div class="sanity-summary-item">
-                    <span>Full Recovery</span>
-                    <strong id="sanityRecoveryTime">—</strong>
-                  </div>
-                </div>
+                  <div class="energy-reactor-frame">
+                    <div class="energy-reactor-track">
+                      <div
+                        id="sanityGaugeFill"
+                        class="energy-reactor-fill">
+                        <span class="energy-reactor-pulse"></span>
+                      </div>
+                      <div
+                        class="energy-reactor-segments"
+                        aria-hidden="true"></div>
+                    </div>
 
-                <div class="sanity-last-update">
-                  <span>Last data update</span>
-                  <strong id="dataUpdatedAt">—</strong>
+                    <div class="energy-reactor-scale">
+                      <span>00</span>
+                      <span>25</span>
+                      <span>50</span>
+                      <span>75</span>
+                      <span>100</span>
+                    </div>
+                  </div>
+
+                  <div class="energy-reactor-readout">
+                    <div>
+                      <span>Stored Energy</span>
+                      <strong>
+                        <b id="sanityCurrent">—</b>
+                        <small>
+                          / <span id="sanityMax">—</span>
+                        </small>
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>Full Recovery</span>
+                      <strong id="sanityRecoveryTime">—</strong>
+                    </div>
+                  </div>
+
+                  <div class="energy-reactor-footer">
+                    <span>Last telemetry</span>
+                    <strong id="dataUpdatedAt">—</strong>
+                  </div>
                 </div>
               </div>
             </article>
 
-            <!-- ACTIVITY TASKS -->
             <article class="panel activity-panel">
               <header class="panel-header">
                 <div>
@@ -465,11 +400,8 @@
               </header>
 
               <div class="activity-body">
-                <div class="feature-icon activity-icon">
-                  <img
-                    src="https://endfield.wiki.gg/images/thumb/Guide_icon.png/40px-Guide_icon.png?4670a8"
-                    alt="Activity Tasks"
-                    referrerpolicy="no-referrer">
+                <div class="feature-icon activity-icon" aria-hidden="true">
+                  <span>MP</span>
                 </div>
 
                 <div class="task-block task-daily">
@@ -590,8 +522,6 @@
     </section>
   </div>
 
-
-  <!-- Connect Account overlay -->
   <div
     id="connectAccountOverlay"
     class="connect-account-overlay"
@@ -750,7 +680,6 @@
     </section>
   </div>
 
-  <!-- Delete linked account overlay -->
   <div
     id="deleteAccountOverlay"
     class="delete-account-overlay"
@@ -843,7 +772,6 @@
     </section>
   </div>
 
-  <!-- Root-level notification overlay -->
   <section
     id="notificationPanel"
     class="notification-panel"
@@ -990,7 +918,7 @@
     </form>
   </div>
 
-  <script src="./config.js?v=20260724-nexus24"></script>
-  <script src="./dashboard.js?v=20260724-nexus24"></script>
+  <script src="./config.js?v=20260724-nexus25"></script>
+  <script src="./dashboard.js?v=20260724-nexus25"></script>
 </body>
 </html>

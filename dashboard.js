@@ -30,7 +30,6 @@ const FALLBACK_ACCOUNTS = [
   { slug: "naskara" }
 ];
 
-
 const state = {
   selectedSlug:
     localStorage.getItem(SELECTED_ACCOUNT_KEY) ||
@@ -44,9 +43,6 @@ const state = {
   lastDataSignature: null,
   networkPulseTimer: null,
   copyLabelTimer: null,
-  avatarManifest: null,
-  avatarManifestVersion: null,
-  avatarManifestTimer: null,
   notifications: [],
   notificationConditions: {},
   notificationPanelOpen: false,
@@ -107,10 +103,6 @@ function gasConfigured() {
   );
 }
 
-/**
- * JSONP dipakai agar GitHub Pages dapat membaca Google Apps Script
- * tanpa bergantung pada header CORS.
- */
 function gasRequest(action, parameters = {}) {
   if (!gasConfigured()) {
     return Promise.reject(
@@ -256,6 +248,16 @@ function setProgress(element, current, maximum) {
     element.style.width =
       nextWidth;
   }
+
+  const meter =
+    element.parentElement;
+
+  if (meter) {
+    meter.style.setProperty(
+      "--meter-progress",
+      nextWidth
+    );
+  }
 }
 
 function formatNumber(value, fallback = "—") {
@@ -363,11 +365,9 @@ function setAuthorized(authorized) {
   if (authorized) {
     sessionStorage.setItem(SESSION_KEY, "1");
     startAutoSync();
-    startAvatarManifestSync();
   } else {
     sessionStorage.removeItem(SESSION_KEY);
     stopAutoSync();
-    stopAvatarManifestSync();
   }
 }
 
@@ -535,170 +535,6 @@ function renderAccountList() {
       );
     });
   });
-}
-
-async function loadAvatarManifest({
-  force = false
-} = {}) {
-  try {
-    const response = await fetch(
-      `./avatar-manifest.json?v=${Date.now()}`,
-      {
-        cache: "no-store",
-        headers: {
-          "Cache-Control": "no-cache"
-        }
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `Avatar manifest HTTP ${response.status}`
-      );
-    }
-
-    const manifest = await response.json();
-    const nextVersion =
-      manifest?.generated_at ||
-      JSON.stringify(manifest?.accounts || {});
-
-    const changed =
-      state.avatarManifestVersion !== null &&
-      nextVersion !== state.avatarManifestVersion;
-
-    state.avatarManifest = manifest;
-    state.avatarManifestVersion = nextVersion;
-
-    if (changed || force) {
-      renderSelectedAccount();
-    }
-
-    return manifest;
-  } catch (error) {
-    console.warn(
-      "[AVATAR] Manifest belum tersedia:",
-      error
-    );
-
-    return null;
-  }
-}
-
-function getGeneratedAvatarUrl(slug) {
-  const account =
-    state.avatarManifest?.accounts?.[slug];
-
-  if (
-    !account ||
-    account.available !== true ||
-    !account.sha256
-  ) {
-    return "";
-  }
-
-  return (
-    `./assets/avatars/${encodeURIComponent(slug)}.png` +
-    `?v=${encodeURIComponent(account.sha256)}`
-  );
-}
-
-function startAvatarManifestSync() {
-  stopAvatarManifestSync();
-
-  state.avatarManifestTimer = setInterval(() => {
-    if (
-      document.visibilityState === "visible" &&
-      sessionStorage.getItem(SESSION_KEY) === "1"
-    ) {
-      loadAvatarManifest();
-    }
-  }, 30000);
-}
-
-function stopAvatarManifestSync() {
-  if (state.avatarManifestTimer !== null) {
-    clearInterval(state.avatarManifestTimer);
-    state.avatarManifestTimer = null;
-  }
-}
-
-function renderAvatar(profile, account) {
-  const image = $("#profileAvatarImage");
-  const fallback = $("#profileAvatarFallback");
-
-  const candidates = [
-    getGeneratedAvatarUrl(account.slug),
-    String(profile?.avatar_url || "").trim()
-  ].filter(Boolean);
-
-  const candidatesKey =
-    candidates.join("|");
-
-  /*
-   * Bila kandidat avatar tidak berubah dan gambar sudah tampil,
-   * jangan reset src. Ini mencegah download/flicker setiap 5 detik.
-   */
-  if (
-    candidatesKey &&
-    image.dataset.avatarCandidates === candidatesKey &&
-    !image.hidden &&
-    image.complete &&
-    image.naturalWidth > 0
-  ) {
-    fallback.hidden = true;
-    return;
-  }
-
-  image.dataset.avatarCandidates =
-    candidatesKey;
-
-  let candidateIndex = 0;
-
-  const showFallback = () => {
-    image.onload = null;
-    image.onerror = null;
-    image.hidden = true;
-    fallback.hidden = false;
-    image.removeAttribute("src");
-    image.removeAttribute("data-avatar-source");
-  };
-
-  const tryNextCandidate = () => {
-    if (candidateIndex >= candidates.length) {
-      showFallback();
-      return;
-    }
-
-    const sourceIndex = candidateIndex;
-    const nextUrl = candidates[candidateIndex];
-    candidateIndex += 1;
-
-    image.onload = () => {
-      fallback.hidden = true;
-      image.hidden = false;
-      image.setAttribute(
-        "data-avatar-source",
-        sourceIndex === 0
-          ? "endfield-cards"
-          : "game-api"
-      );
-    };
-
-    image.onerror = () => {
-      tryNextCandidate();
-    };
-
-    image.hidden = true;
-    fallback.hidden = false;
-    image.src = nextUrl;
-  };
-
-  if (candidates.length === 0) {
-    showFallback();
-    return;
-  }
-
-  tryNextCandidate();
 }
 
 function renderTask(prefix, task) {
@@ -916,8 +752,8 @@ function updateSanityGauge(
   const gauge =
     $("#sanityGauge");
 
-  const arc =
-    $("#sanityGaugeArc");
+  const fill =
+    $("#sanityGaugeFill");
 
   const percentElement =
     $("#sanityPercent");
@@ -927,7 +763,7 @@ function updateSanityGauge(
 
   if (
     !gauge ||
-    !arc ||
+    !fill ||
     !percentElement ||
     !caption
   ) {
@@ -940,14 +776,10 @@ function updateSanityGauge(
     maximum > 0;
 
   if (!valid) {
-    arc.style.strokeDasharray =
-      "0 100";
-
-    percentElement.textContent =
-      "—%";
-
+    fill.style.width = "0%";
+    percentElement.textContent = "—%";
     caption.textContent =
-      "Waiting for live energy data";
+      "Waiting for telemetry";
 
     gauge.setAttribute(
       "aria-valuenow",
@@ -972,51 +804,30 @@ function updateSanityGauge(
       )
     );
 
-  /*
-   * The visible radial arc is 300° of a full circle:
-   * 300 / 360 = 83.333% path length.
-   */
-  const visibleArcLength =
-    83.333;
-
-  const progressArc =
-    visibleArcLength *
-    (percent / 100);
-
-  const nextArc =
-    `${progressArc.toFixed(3)} 100`;
-
-  const nextPercent =
+  const percentText =
     `${Math.round(percent)}%`;
 
-  const nextCaption =
-    current >= maximum
-      ? "Energy fully restored"
-      : `${Math.round(percent)}% energy available`;
+  const width =
+    `${percent.toFixed(3)}%`;
 
-  if (
-    arc.style.strokeDasharray !==
-    nextArc
-  ) {
-    arc.style.strokeDasharray =
-      nextArc;
+  if (fill.style.width !== width) {
+    fill.style.width = width;
   }
 
   if (
     percentElement.textContent !==
-    nextPercent
+    percentText
   ) {
     percentElement.textContent =
-      nextPercent;
+      percentText;
   }
 
-  if (
-    caption.textContent !==
-    nextCaption
-  ) {
-    caption.textContent =
-      nextCaption;
-  }
+  caption.textContent =
+    current >= maximum
+      ? "Core fully charged"
+      : percent <= 20
+        ? "Low energy reserve"
+        : "Regeneration active";
 
   gauge.setAttribute(
     "aria-valuenow",
@@ -1043,8 +854,6 @@ function renderSelectedAccount() {
   const profile = account.profile || {};
   const live = account.live || {};
   const sanity = live.sanity || null;
-
-  renderAvatar(profile, account);
 
   $("#profileName").textContent =
     profile.name || "—";
@@ -1863,8 +1672,6 @@ function createDataSignature(dashboardState) {
             operator_count:
               profile.operator_count ??
               null,
-            avatar_url:
-              profile.avatar_url ?? null
           },
           live: {
             sanity: {
@@ -1972,10 +1779,6 @@ function applyDashboardState(dashboardState, source) {
   state.lastDataSignature =
     nextSignature;
 
-  /*
-   * Full render hanya saat pertama load, data berubah, atau refresh manual.
-   * Sinkronisasi 5 detik yang nilainya sama cukup memperbarui metadata.
-   */
   if (
     firstLoad ||
     changed
@@ -1983,10 +1786,7 @@ function applyDashboardState(dashboardState, source) {
     renderAccountList();
     renderSelectedAccount();
   } else {
-    /*
-     * Snapshot tetap diperiksa setiap 5 detik, tetapi panel visual
-     * tidak disentuh bila nilai game belum berubah.
-     */
+
     renderSelectedAccountSyncMeta();
   }
 
@@ -2145,11 +1945,6 @@ function startOperationProgress(
         performance.now() -
         operation.startedAt;
 
-      /*
-       * Progress diperkirakan karena Google Apps Script tidak
-       * mengirim streaming byte/progress. Nilai bergerak cepat
-       * di awal lalu menahan maksimal 94% sampai respons tiba.
-       */
       const estimated =
         Math.min(
           94,
@@ -2336,12 +2131,6 @@ async function syncState({
 
   try {
     const payload = await gasRequest(action);
-
-    if (manual) {
-      await loadAvatarManifest({
-        force: true
-      });
-    }
 
     const dashboardState =
       normalizeDashboardPayload(payload);
@@ -2825,14 +2614,6 @@ function findTokenByKey(
     return "";
   }
 
-  /*
-   * Respons endpoint resmi umumnya:
-   * {
-   *   "data": {
-   *     "content": "ACCOUNT_TOKEN"
-   *   }
-   * }
-   */
   const preferredKeys = [
     "account_token",
     "accountToken",
@@ -2906,9 +2687,6 @@ function normalizeAccountToken(value) {
       .replace(/^["']|["']$/g, "")
       .trim();
 
-  /*
-   * Jangan menerima seluruh objek JSON sebagai token.
-   */
   if (
     token.startsWith("{") ||
     token.startsWith("[")
@@ -2920,7 +2698,6 @@ function normalizeAccountToken(value) {
     token =
       decodeURIComponent(token);
   } catch (_) {
-    // Token tidak harus URI encoded.
   }
 
   token =
@@ -2949,9 +2726,6 @@ function extractAccountToken(responseText) {
     parsed = null;
   }
 
-  /*
-   * Mendukung JSON yang terbungkus sebagai string JSON.
-   */
   for (
     let attempt = 0;
     attempt < 3 &&
@@ -2984,10 +2758,6 @@ function extractAccountToken(responseText) {
       return nested;
     }
 
-    /*
-     * JSON valid tanpa token tidak boleh jatuh kembali
-     * menjadi seluruh JSON sebagai token.
-     */
     return "";
   }
 
@@ -3321,10 +3091,6 @@ async function fetchAndCopyAccountToken() {
   state.accountTokenApiOpened =
     true;
 
-  /*
-   * Tab resmi dibuka langsung agar tidak diblokir popup.
-   * Dashboard lalu mencoba request otomatis di belakang layar.
-   */
   window.open(
     ACCOUNT_TOKEN_API_URL,
     "_blank",
@@ -4049,11 +3815,9 @@ async function initialize() {
       "Mounting notification and command modules..."
     );
 
-    await loadAvatarManifest();
-
     updateBootSequence(
       42,
-      "Mapping operator avatar resources..."
+      "Preparing operator identity matrix..."
     );
 
     renderAccountList();
@@ -4105,7 +3869,6 @@ async function initialize() {
               manual: false
             });
 
-            loadAvatarManifest();
           }
         }
       }
@@ -4115,7 +3878,6 @@ async function initialize() {
       "beforeunload",
       () => {
         stopAutoSync();
-        stopAvatarManifestSync();
       }
     );
   } finally {
