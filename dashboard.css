@@ -6553,3 +6553,259 @@ body.delete-account-open {
     max-width: none;
   }
 }
+
+
+.auth-flow-banner {
+  padding: 14px;
+  display: grid;
+  grid-template-columns:
+    42px
+    minmax(0, 1fr)
+    auto;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid rgba(255, 52, 77, 0.3);
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      120deg,
+      rgba(255, 52, 77, 0.1),
+      rgba(10, 14, 20, 0.92) 58%
+    );
+}
+
+.auth-flow-banner-icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 52, 77, 0.42);
+  border-radius: 12px;
+  color: var(--signal);
+  background: rgba(255, 52, 77, 0.08);
+}
+
+.auth-flow-banner-icon
+.nexus-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.auth-flow-banner span,
+.auth-flow-banner strong,
+.auth-flow-banner p {
+  display: block;
+}
+
+.auth-flow-banner > div:nth-child(2) > span {
+  color: var(--signal);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 1.3px;
+}
+
+.auth-flow-banner strong {
+  margin-top: 4px;
+  color: var(--text);
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 14px;
+}
+
+.auth-flow-banner p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 8px;
+  line-height: 1.55;
+}
+
+.auth-flow-badge {
+  padding: 5px 8px;
+  border: 1px solid rgba(255, 190, 99, 0.35);
+  border-radius: 999px;
+  color: var(--amber);
+  font-size: 6px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+}
+
+.email-auth-form {
+  margin-top: 12px;
+}
+
+.email-auth-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 11px;
+}
+
+.email-auth-field {
+  min-width: 0;
+}
+
+.email-auth-field-wide {
+  grid-column: 1 / -1;
+}
+
+.email-auth-field label {
+  display: block;
+  margin-bottom: 7px;
+  color: #a9b1bc;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.email-auth-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.email-auth-label-row > span {
+  margin-bottom: 7px;
+  color: var(--amber);
+  font-size: 6px;
+  font-weight: 800;
+  letter-spacing: 0.7px;
+}
+
+.email-auth-input {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 13px;
+  border: 1px solid #343b46;
+  border-radius: 12px;
+  outline: none;
+  background: #070a0f;
+  color: #f7f9fc;
+  font: inherit;
+  font-size: 10px;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.email-auth-input:focus {
+  border-color: rgba(255, 52, 77, 0.7);
+  box-shadow:
+    0 0 0 3px
+    rgba(255, 52, 77, 0.08);
+}
+
+.email-auth-input::placeholder {
+  color: #4f5967;
+}
+
+.email-auth-captcha {
+  min-height: 94px;
+  padding-top: 11px;
+  padding-bottom: 11px;
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.email-auth-field small {
+  display: block;
+  margin-top: 7px;
+  color: #6f7885;
+  font-size: 7px;
+  line-height: 1.55;
+}
+
+.email-auth-password-wrap {
+  position: relative;
+}
+
+.email-auth-password-wrap
+.email-auth-input {
+  padding-right: 48px;
+}
+
+.email-auth-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 7px;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  transform: translateY(-50%);
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: #6d7784;
+  cursor: pointer;
+}
+
+.email-auth-password-toggle:hover {
+  border-color: var(--line);
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.email-auth-password-toggle
+.nexus-icon {
+  width: 17px;
+  height: 17px;
+}
+
+.password-hide-icon {
+  display: none;
+}
+
+.email-auth-password-toggle.is-visible
+.password-show-icon {
+  display: none;
+}
+
+.email-auth-password-toggle.is-visible
+.password-hide-icon {
+  display: block;
+}
+
+.email-auth-route {
+  margin-top: 11px;
+  padding: 10px 11px;
+  display: grid;
+  gap: 6px;
+  border: 1px solid var(--line-soft);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.email-auth-route span {
+  color: var(--muted-2);
+  font-size: 6px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.email-auth-route code {
+  overflow-wrap: anywhere;
+  color: #aab4c0;
+  font-family: inherit;
+  font-size: 7px;
+  line-height: 1.5;
+}
+
+@media (max-width: 560px) {
+  .auth-flow-banner {
+    grid-template-columns:
+      38px
+      minmax(0, 1fr);
+  }
+
+  .auth-flow-badge {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  .email-auth-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .email-auth-field-wide {
+    grid-column: auto;
+  }
+}
