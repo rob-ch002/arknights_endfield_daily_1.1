@@ -6253,3 +6253,303 @@ body.delete-account-open {
     animation-duration: 5s;
   }
 }
+
+
+.nexus-icon-sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.nexus-icon {
+  width: 1.25em;
+  height: 1.25em;
+  display: block;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.65;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+
+.nexus-brand-mark {
+  width: 30px;
+  height: 30px;
+  stroke-width: 1.35;
+}
+
+.boot-logo .nexus-icon,
+.login-visual-logo .nexus-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.endfield-nexus-2026
+.button-svg-icon {
+  display: grid;
+  place-items: center;
+}
+
+.endfield-nexus-2026
+.button-svg-icon .nexus-icon {
+  width: 17px;
+  height: 17px;
+}
+
+.endfield-nexus-2026
+.nav-icon .nexus-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.endfield-nexus-2026
+.notification-button .nexus-icon,
+.endfield-nexus-2026
+.mobile-menu-button .nexus-icon {
+  width: 19px;
+  height: 19px;
+}
+
+.endfield-nexus-2026
+.logout-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+}
+
+.endfield-nexus-2026
+.logout-button .nexus-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.endfield-nexus-2026
+.connect-external-link .nexus-icon {
+  width: 13px;
+  height: 13px;
+}
+
+.endfield-nexus-2026
+.connect-account-close .nexus-icon,
+.endfield-nexus-2026
+.toast-close .nexus-icon {
+  width: 15px;
+  height: 15px;
+}
+
+.endfield-nexus-2026
+.activity-icon .nexus-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.endfield-nexus-2026
+.account-delete-trigger .nexus-icon {
+  width: 15px;
+  height: 15px;
+}
+
+.endfield-nexus-2026
+.toast-title > span:first-child {
+  width: 23px;
+  height: 23px;
+  display: grid;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+}
+
+.endfield-nexus-2026
+.toast-title .nexus-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.endfield-nexus-2026
+.notification-item-icon .nexus-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.endfield-nexus-2026
+.mobile-menu-button,
+.endfield-nexus-2026
+.notification-button,
+.endfield-nexus-2026
+.connect-account-close,
+.endfield-nexus-2026
+.toast-close {
+  display: grid;
+  place-items: center;
+}
+
+.endfield-nexus-2026
+.app-shell,
+.endfield-nexus-2026
+.main-shell,
+.endfield-nexus-2026
+.main-content {
+  visibility: visible;
+  opacity: 1;
+}
+
+@media (max-width: 980px) {
+  html,
+  body.endfield-nexus-2026 {
+    width: 100%;
+    min-height: 100%;
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  body.endfield-nexus-2026 {
+    position: relative;
+  }
+
+  .endfield-nexus-2026
+  .app-shell {
+    width: 100%;
+    height: auto;
+    min-height: 100dvh;
+    display: block;
+    overflow: visible;
+  }
+
+  .endfield-nexus-2026
+  .sidebar {
+    position: fixed;
+    z-index: 50000;
+    inset:
+      0
+      auto
+      0
+      0;
+    width: min(330px, 88vw);
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
+    transform:
+      translate3d(
+        -105%,
+        0,
+        0
+      );
+  }
+
+  .endfield-nexus-2026
+  .sidebar.open {
+    transform:
+      translate3d(
+        0,
+        0,
+        0
+      );
+  }
+
+  .endfield-nexus-2026
+  .main-shell {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: auto;
+    min-height: 100dvh;
+    display: block;
+    overflow: visible;
+  }
+
+  .endfield-nexus-2026
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 40000;
+    width: 100%;
+  }
+
+  .endfield-nexus-2026
+  .main-content {
+    width: 100%;
+    min-height:
+      calc(
+        100dvh -
+        var(--topbar-height)
+      );
+    height: auto;
+    display: block;
+    overflow: visible;
+    padding:
+      18px
+      14px
+      calc(
+        70px +
+        env(safe-area-inset-bottom)
+      );
+  }
+
+  .endfield-nexus-2026
+  .content-width {
+    width: 100%;
+    min-width: 0;
+    padding-bottom: 0;
+  }
+
+  .endfield-nexus-2026
+  .overview-grid {
+    width: 100%;
+  }
+
+  .endfield-nexus-2026
+  .toast-region {
+    z-index: 80000;
+  }
+
+  .endfield-nexus-2026
+  .login-layer {
+    z-index: 90000;
+  }
+}
+
+@media (max-width: 680px) {
+  .endfield-nexus-2026
+  .main-content {
+    padding:
+      12px
+      10px
+      calc(
+        68px +
+        env(safe-area-inset-bottom)
+      );
+  }
+
+  .endfield-nexus-2026
+  .command-hero,
+  .endfield-nexus-2026
+  .panel,
+  .endfield-nexus-2026
+  .status-panel {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .endfield-nexus-2026
+  .toast-region {
+    top:
+      calc(
+        var(--topbar-height) +
+        8px
+      );
+    right: 8px;
+    left: 8px;
+    width: auto;
+  }
+
+  .endfield-nexus-2026
+  .toast {
+    width: 100%;
+    max-width: none;
+  }
+}

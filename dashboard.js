@@ -38,6 +38,8 @@ const state = {
   autoTimer: null,
   countdownTimer: null,
   requestInProgress: false,
+  pendingManualSync: false,
+  manualSyncQueuedNoticeShown: false,
   checkingIn: false,
   lastRevision: null,
   lastDataSignature: null,
@@ -94,6 +96,18 @@ function escapeHtml(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+function getNexusIconSvg(name) {
+  const safeName =
+    String(name || "info")
+      .replace(/[^a-z-]/g, "");
+
+  return `
+    <svg class="nexus-icon" aria-hidden="true">
+      <use href="#nx-${safeName}"></use>
+    </svg>
+  `;
 }
 
 function gasConfigured() {
@@ -360,13 +374,41 @@ function selectedAccount() {
 }
 
 function setAuthorized(authorized) {
-  $("#loginLayer").hidden = authorized;
+  $("#loginLayer").hidden =
+    authorized;
+
+  document.body.classList.toggle(
+    "is-authorized",
+    authorized
+  );
 
   if (authorized) {
-    sessionStorage.setItem(SESSION_KEY, "1");
+    sessionStorage.setItem(
+      SESSION_KEY,
+      "1"
+    );
+
     startAutoSync();
+
+    requestAnimationFrame(() => {
+      const mainContent =
+        $(".main-content");
+
+      if (mainContent) {
+        mainContent.scrollTop =
+          0;
+      }
+
+      window.scrollTo(
+        0,
+        0
+      );
+    });
   } else {
-    sessionStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(
+      SESSION_KEY
+    );
+
     stopAutoSync();
   }
 }
@@ -497,12 +539,7 @@ function renderAccountList() {
                     profile.name || account.slug
                   )}"
                   title="Hapus akun tertaut">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M4 7h16"></path>
-                    <path d="M9 7V4h6v3"></path>
-                    <path d="M7 7l1 13h8l1-13"></path>
-                    <path d="M10 11v5M14 11v5"></path>
-                  </svg>
+                  ${getNexusIconSvg("trash")}
                 </button>
               `
               : ""
@@ -1045,21 +1082,11 @@ function getWibDateKey(date = new Date()) {
 }
 
 function getNotificationIconSvg(type) {
-  if (type === "energy") {
-    return `
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="m13 2-8 12h6l-1 8 9-13h-6l0-7Z"></path>
-      </svg>
-    `;
-  }
-
-  return `
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M5 3h14v18H5z"></path>
-      <path d="M8 7h8M8 11h8M8 15h4"></path>
-      <path d="m14.5 16.5 1.5 1.5 3-3"></path>
-    </svg>
-  `;
+  return getNexusIconSvg(
+    type === "energy"
+      ? "energy"
+      : "mission"
+  );
 }
 
 function formatNotificationTime(value) {
@@ -2109,51 +2136,117 @@ function setRefreshButtonsDisabled(disabled) {
   });
 }
 
+function markManualSyncQueued() {
+  state.pendingManualSync =
+    true;
+
+  setRefreshButtonsDisabled(
+    true
+  );
+
+  startOperationProgress(
+    "refresh"
+  );
+
+  getOperationButtons(
+    "refresh"
+  ).forEach(button => {
+    setButtonOperationLabel(
+      button,
+      "SYNC QUEUED"
+    );
+  });
+
+  if (
+    !state.manualSyncQueuedNoticeShown
+  ) {
+    state.manualSyncQueuedNoticeShown =
+      true;
+
+    showToast({
+      type: "info",
+      title: "Sync masuk antrean",
+      message:
+        "Sinkronisasi otomatis sedang berlangsung. Telemetry sync akan dijalankan segera setelah request aktif selesai.",
+      duration: 4200
+    });
+  }
+}
+
 async function syncState({
   action = "state",
   manual = false
 } = {}) {
   if (state.requestInProgress) {
-    return;
+    if (manual) {
+      markManualSyncQueued();
+    }
+
+    return false;
   }
 
   state.requestInProgress = true;
   let manualSuccessful = false;
 
   if (manual) {
+    state.pendingManualSync =
+      false;
+
+    state.manualSyncQueuedNoticeShown =
+      false;
+
     document.body.classList.add(
       "is-command-syncing"
     );
 
-    setRefreshButtonsDisabled(true);
-    startOperationProgress("refresh");
+    setRefreshButtonsDisabled(
+      true
+    );
+
+    startOperationProgress(
+      "refresh"
+    );
   }
 
   try {
-    const payload = await gasRequest(action);
+    const payload =
+      await gasRequest(action);
 
     const dashboardState =
-      normalizeDashboardPayload(payload);
+      normalizeDashboardPayload(
+        payload
+      );
 
-    const changed = applyDashboardState(
+    applyDashboardState(
       dashboardState,
-      manual ? "manual" : "automatic"
+      manual
+        ? "manual"
+        : "automatic"
     );
 
     if (manual) {
-      manualSuccessful = true;
+      manualSuccessful =
+        true;
 
       showToast({
         type: "success",
-        title: "Manual refresh selesai",
+        title: "Telemetry synchronized",
         message:
-          "Level, Operator, Exploration, Stamina, dan Activity sudah diperiksa."
+          "Level, Operator, Exploration, Energy, dan Mission Progress sudah diperiksa."
       });
     }
-  } catch (error) {
-    console.error("[SYNC]", error);
 
-    if (manual || !state.data) {
+    return true;
+  } catch (error) {
+    console.error(
+      "[SYNC]",
+      error
+    );
+
+    if (
+      manual ||
+      !state.data
+    ) {
       showToast({
         type: "error",
         title: "Sinkronisasi gagal",
@@ -2163,21 +2256,42 @@ async function syncState({
         duration: 8000
       });
     }
+
+    return false;
   } finally {
+    const runQueuedManual =
+      !manual &&
+      state.pendingManualSync;
+
     if (manual) {
       await finishOperationProgress(
         "refresh",
         manualSuccessful
       );
 
-      setRefreshButtonsDisabled(false);
+      setRefreshButtonsDisabled(
+        false
+      );
 
       document.body.classList.remove(
         "is-command-syncing"
       );
     }
 
-    state.requestInProgress = false;
+    state.requestInProgress =
+      false;
+
+    if (runQueuedManual) {
+      state.pendingManualSync =
+        false;
+
+      queueMicrotask(() => {
+        syncState({
+          action: "sync",
+          manual: true
+        });
+      });
+    }
   }
 }
 
@@ -2429,19 +2543,26 @@ function showToast({
   toast.className =
     `toast ${type === "info" ? "" : type}`.trim();
 
-  const icon =
+  const iconName =
     type === "success"
-      ? "✓"
+      ? "success"
       : type === "warning"
-        ? "!"
+        ? "warning"
         : type === "error"
-          ? "✕"
-          : "ⓘ";
+          ? "error"
+          : "info";
+
+  const icon =
+    getNexusIconSvg(
+      iconName
+    );
 
   toast.innerHTML = `
     <button class="toast-close"
             type="button"
-            aria-label="Tutup">×</button>
+            aria-label="Tutup">
+      ${getNexusIconSvg("close")}
+    </button>
     <div class="toast-title">
       <span>${icon}</span>
       <span>${escapeHtml(title)}</span>
