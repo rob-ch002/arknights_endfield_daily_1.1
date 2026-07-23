@@ -3596,3 +3596,2132 @@ body.delete-account-open {
     grid-template-columns: minmax(0, 1fr) 36px;
   }
 }
+
+
+/* =====================================================================
+   ENDFIELD COMMAND NEXUS 2026
+   Full visual replacement layer.
+   ===================================================================== */
+
+.endfield-nexus-2026 {
+  --bg: #07090d;
+  --bg-deep: #030509;
+  --surface: #10141b;
+  --surface-2: #151a22;
+  --surface-3: #1b212b;
+  --panel: rgba(16, 20, 27, 0.96);
+  --panel-2: rgba(20, 25, 33, 0.96);
+  --line: rgba(160, 174, 193, 0.17);
+  --line-soft: rgba(160, 174, 193, 0.105);
+  --line-strong: rgba(211, 221, 234, 0.28);
+  --text: #f7f9fc;
+  --muted: #8993a1;
+  --muted-2: #596372;
+  --yellow: #ff344d;
+  --signal: #ff344d;
+  --signal-soft: rgba(255, 52, 77, 0.13);
+  --amber: #ffbe63;
+  --cyan: #56e6ff;
+  --green: #52e49b;
+  --red: #ff6578;
+  --blue: #68a7ff;
+  --sidebar-width: 292px;
+  --topbar-height: 76px;
+  color-scheme: dark;
+  background: var(--bg);
+}
+
+.endfield-nexus-2026,
+.endfield-nexus-2026 button,
+.endfield-nexus-2026 input,
+.endfield-nexus-2026 textarea {
+  font-family:
+    "JetBrains Mono",
+    ui-monospace,
+    SFMono-Regular,
+    Consolas,
+    monospace;
+}
+
+.endfield-nexus-2026 h1,
+.endfield-nexus-2026 h2,
+.endfield-nexus-2026 h3,
+.endfield-nexus-2026 .brand-title {
+  font-family:
+    "Space Grotesk",
+    system-ui,
+    sans-serif;
+}
+
+/* ---------- Background ---------- */
+
+.endfield-nexus-2026 .background-media {
+  background:
+    radial-gradient(
+      circle at 76% 5%,
+      rgba(86, 230, 255, 0.10),
+      transparent 25%
+    ),
+    radial-gradient(
+      circle at 28% 84%,
+      rgba(255, 52, 77, 0.10),
+      transparent 28%
+    ),
+    linear-gradient(
+      138deg,
+      #090d13 0%,
+      #05070b 48%,
+      #0a0e14 100%
+    );
+}
+
+.endfield-nexus-2026 .background-media::before {
+  opacity: 0.55;
+  background:
+    linear-gradient(
+      120deg,
+      transparent 0 62%,
+      rgba(255, 52, 77, 0.04) 62% 62.25%,
+      transparent 62.25% 100%
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.016) 0 1px,
+      transparent 1px 96px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.012) 0 1px,
+      transparent 1px 96px
+    );
+}
+
+.endfield-nexus-2026 .background-media::after {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(4, 7, 11, 0.97),
+      rgba(5, 8, 13, 0.69) 40%,
+      rgba(5, 8, 13, 0.78)
+    );
+}
+
+.endfield-nexus-2026::before {
+  content: "ENDFIELD // COMMAND NEXUS";
+  right: -210px;
+  bottom: 220px;
+  color: rgba(255, 255, 255, 0.018);
+  font-size: clamp(46px, 6vw, 94px);
+  letter-spacing: 13px;
+}
+
+/* ---------- Boot terminal ---------- */
+
+.boot-overlay {
+  position: fixed;
+  z-index: 100000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(
+      circle at 50% 42%,
+      rgba(255, 52, 77, 0.10),
+      transparent 34%
+    ),
+    #05070a;
+  opacity: 1;
+  transition:
+    opacity 0.42s ease,
+    visibility 0.42s ease;
+}
+
+.boot-overlay[hidden] {
+  display: none !important;
+}
+
+.boot-overlay.is-complete {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.boot-terminal {
+  width: min(620px, 100%);
+  padding: clamp(24px, 5vw, 42px);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 52, 77, 0.42);
+  border-radius: 22px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(22, 27, 36, 0.98),
+      rgba(8, 11, 16, 0.99)
+    );
+  box-shadow:
+    0 40px 120px rgba(0, 0, 0, 0.72),
+    0 0 0 1px rgba(255, 255, 255, 0.025) inset;
+}
+
+.boot-terminal::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      115deg,
+      transparent 0 70%,
+      rgba(255, 52, 77, 0.045) 70% 70.5%,
+      transparent 70.5%
+    );
+}
+
+.boot-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.boot-logo {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 52, 77, 0.48);
+  border-radius: 14px;
+  background: var(--signal-soft);
+}
+
+.boot-logo img {
+  width: 32px;
+  height: 32px;
+  filter:
+    brightness(0)
+    invert(31%)
+    sepia(99%)
+    saturate(3661%)
+    hue-rotate(337deg)
+    brightness(105%);
+}
+
+.boot-brand small,
+.boot-brand strong {
+  display: block;
+}
+
+.boot-brand small {
+  color: var(--muted);
+  font-size: 8px;
+  letter-spacing: 1.8px;
+}
+
+.boot-brand strong {
+  margin-top: 3px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 18px;
+}
+
+.boot-copy {
+  margin-top: 54px;
+}
+
+.boot-copy > span {
+  color: var(--signal);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.boot-copy h1 {
+  margin-top: 10px;
+  font-size: clamp(28px, 5vw, 44px);
+  line-height: 1.03;
+  letter-spacing: -1.4px;
+}
+
+.boot-copy p {
+  margin-top: 13px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.boot-progress {
+  height: 8px;
+  margin-top: 34px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #242a33;
+}
+
+.boot-progress > span {
+  width: 0;
+  height: 100%;
+  display: block;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      90deg,
+      #a40e25,
+      #ff344d 54%,
+      #ffbe63
+    );
+  box-shadow: 0 0 20px rgba(255, 52, 77, 0.38);
+  transition:
+    width 0.22s
+    cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.boot-progress-meta {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted-2);
+  font-size: 8px;
+  letter-spacing: 0.8px;
+}
+
+.boot-progress-meta strong {
+  color: var(--text);
+  font-size: 11px;
+}
+
+.boot-diagnostics {
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.boot-diagnostics span {
+  padding: 9px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  color: var(--muted);
+  font-size: 7px;
+  text-align: center;
+}
+
+/* ---------- Main layout ---------- */
+
+.endfield-nexus-2026 .app-shell {
+  grid-template-columns:
+    var(--sidebar-width)
+    minmax(0, 1fr);
+}
+
+.endfield-nexus-2026 .sidebar {
+  position: relative;
+  border-right: 1px solid var(--line);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(11, 14, 20, 0.99),
+      rgba(6, 9, 13, 0.99)
+    );
+}
+
+.endfield-nexus-2026 .sidebar::after {
+  content: "";
+  position: absolute;
+  top: 76px;
+  right: -1px;
+  bottom: 0;
+  width: 1px;
+  background:
+    linear-gradient(
+      transparent,
+      rgba(255, 52, 77, 0.34),
+      transparent
+    );
+  pointer-events: none;
+}
+
+.endfield-nexus-2026 .brand {
+  height: var(--topbar-height);
+  padding: 0 20px;
+  gap: 13px;
+  border-bottom-color: var(--line);
+  background:
+    linear-gradient(
+      110deg,
+      rgba(255, 52, 77, 0.10),
+      transparent 55%
+    );
+}
+
+.endfield-nexus-2026 .brand-logo {
+  width: 44px;
+  height: 44px;
+  flex-basis: 44px;
+  border-radius: 13px;
+  clip-path: none;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 52, 77, 0.18),
+      rgba(255, 52, 77, 0.045)
+    );
+}
+
+.endfield-nexus-2026 .brand-logo img {
+  width: 30px;
+  height: 30px;
+}
+
+.endfield-nexus-2026 .brand-title {
+  font-size: 16px;
+}
+
+.endfield-nexus-2026 .brand-beta {
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: rgba(255, 52, 77, 0.10);
+  font-size: 6px;
+}
+
+.endfield-nexus-2026 .sidebar-nav {
+  padding: 18px 14px;
+  scrollbar-width: thin;
+  scrollbar-color:
+    rgba(255, 52, 77, 0.25)
+    transparent;
+}
+
+.endfield-nexus-2026 .nav-label {
+  margin: 15px 8px 8px;
+  color: #596373;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 1.7px;
+}
+
+.endfield-nexus-2026 .nav-button {
+  min-height: 46px;
+  padding: 0 13px;
+  gap: 11px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: #9da6b3;
+  font-size: 10px;
+  transition:
+    color 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+
+.endfield-nexus-2026 .nav-button:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.035);
+  transform: translateX(2px);
+}
+
+.endfield-nexus-2026 .nav-button.active {
+  border-color: rgba(255, 52, 77, 0.38);
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 52, 77, 0.16),
+      rgba(255, 52, 77, 0.035)
+    );
+  color: var(--text);
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, 0.22);
+}
+
+.endfield-nexus-2026 .nav-button.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 3px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--signal);
+  box-shadow: 0 0 12px rgba(255, 52, 77, 0.56);
+}
+
+.endfield-nexus-2026 .nav-icon {
+  width: 22px;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+}
+
+.endfield-nexus-2026 .connect-account-nav {
+  margin-top: 10px;
+  border: 1px dashed rgba(255, 52, 77, 0.28);
+  background: rgba(255, 52, 77, 0.035);
+}
+
+.endfield-nexus-2026 .account-mini-list {
+  display: grid;
+  gap: 7px;
+}
+
+.endfield-nexus-2026 .account-mini-row {
+  grid-template-columns: minmax(0, 1fr) 38px;
+  gap: 6px;
+}
+
+.endfield-nexus-2026 .account-mini {
+  min-height: 66px;
+  padding: 11px 12px;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.025);
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.endfield-nexus-2026 .account-mini:hover {
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.045);
+  transform: translateX(2px);
+}
+
+.endfield-nexus-2026 .account-mini.active {
+  border-color: rgba(255, 52, 77, 0.52);
+  background:
+    linear-gradient(
+      125deg,
+      rgba(255, 52, 77, 0.16),
+      rgba(255, 52, 77, 0.035)
+    );
+  box-shadow:
+    0 10px 26px rgba(0, 0, 0, 0.2);
+}
+
+.endfield-nexus-2026 .account-mini-name {
+  font-size: 10px;
+}
+
+.endfield-nexus-2026 .account-mini-meta {
+  margin-top: 5px;
+  color: #697483;
+  font-size: 7px;
+  line-height: 1.5;
+}
+
+.endfield-nexus-2026 .account-delete-trigger {
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.endfield-nexus-2026 .sidebar-footer {
+  padding: 12px 14px 16px;
+  border-top: 1px solid var(--line);
+}
+
+.endfield-nexus-2026 .logout-button {
+  min-height: 43px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+/* ---------- Top bar ---------- */
+
+.endfield-nexus-2026 .topbar {
+  height: var(--topbar-height);
+  flex-basis: var(--topbar-height);
+  padding: 0 28px;
+  border-bottom: 1px solid var(--line);
+  background:
+    linear-gradient(
+      90deg,
+      rgba(8, 11, 16, 0.98),
+      rgba(13, 17, 24, 0.95)
+    );
+}
+
+.endfield-nexus-2026 .topbar-title {
+  gap: 11px;
+}
+
+.endfield-nexus-2026 .topbar-title > span,
+.endfield-nexus-2026 .topbar-title > strong {
+  display: block;
+}
+
+.endfield-nexus-2026 .topbar-path {
+  color: var(--signal);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 1.6px;
+}
+
+.endfield-nexus-2026 .topbar-title > strong {
+  color: var(--text);
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 13px;
+}
+
+.endfield-nexus-2026 .topbar-status {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.025);
+  font-size: 7px;
+}
+
+.endfield-nexus-2026 .notification-button,
+.endfield-nexus-2026 .mobile-menu-button {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.endfield-nexus-2026 .notification-badge {
+  border-radius: 999px;
+}
+
+.command-progress-line {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 2px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.command-progress-line > span {
+  width: 34%;
+  height: 100%;
+  display: block;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--signal),
+      var(--amber),
+      transparent
+    );
+  opacity: 0;
+  transform: translate3d(-120%, 0, 0);
+}
+
+.is-command-syncing
+.command-progress-line > span {
+  opacity: 1;
+  animation:
+    nexus-command-line
+    1.35s
+    ease-in-out
+    infinite;
+}
+
+@keyframes nexus-command-line {
+  from {
+    transform: translate3d(-120%, 0, 0);
+  }
+
+  to {
+    transform: translate3d(410%, 0, 0);
+  }
+}
+
+/* ---------- Main content / hero ---------- */
+
+.endfield-nexus-2026 .main-content {
+  padding: 30px 34px 64px;
+  scrollbar-width: thin;
+  scrollbar-color:
+    rgba(255, 52, 77, 0.26)
+    transparent;
+}
+
+.endfield-nexus-2026 .content-width {
+  width: min(1540px, 100%);
+}
+
+.command-hero {
+  position: relative;
+  min-height: 184px;
+  margin-bottom: 16px;
+  padding: clamp(24px, 4vw, 38px);
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.4fr)
+    minmax(360px, 0.8fr);
+  align-items: center;
+  gap: 28px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background:
+    radial-gradient(
+      circle at 80% 20%,
+      rgba(86, 230, 255, 0.09),
+      transparent 30%
+    ),
+    linear-gradient(
+      125deg,
+      rgba(24, 30, 40, 0.98),
+      rgba(10, 13, 18, 0.98)
+    );
+  box-shadow:
+    0 26px 70px rgba(0, 0, 0, 0.25);
+}
+
+.command-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      112deg,
+      transparent 0 73%,
+      rgba(255, 52, 77, 0.055) 73% 73.45%,
+      transparent 73.45%
+    );
+}
+
+.command-hero::after {
+  content: "NX-26";
+  position: absolute;
+  right: 24px;
+  bottom: -15px;
+  color: rgba(255, 255, 255, 0.025);
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 82px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.command-hero-copy,
+.hero-status-grid {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-kicker {
+  color: var(--signal);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1.8px;
+}
+
+.endfield-nexus-2026 .page-title-row {
+  margin-top: 10px;
+  gap: 13px;
+}
+
+.endfield-nexus-2026 .page-title-row h1 {
+  font-size: clamp(34px, 5vw, 58px);
+  letter-spacing: -2.4px;
+}
+
+.endfield-nexus-2026 .page-heading p {
+  max-width: 700px;
+  margin-top: 13px;
+  color: #87919e;
+  font-size: 10px;
+  line-height: 1.75;
+  letter-spacing: 0.3px;
+  text-transform: none;
+}
+
+.endfield-nexus-2026 .badge {
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(255, 52, 77, 0.075);
+  font-size: 7px;
+}
+
+.hero-status-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.hero-status-item {
+  min-height: 54px;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr);
+  align-items: center;
+  gap: 11px;
+  border: 1px solid var(--line-soft);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.hero-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+}
+
+.hero-status-dot.online {
+  background: var(--green);
+  box-shadow: 0 0 13px rgba(82, 228, 155, 0.7);
+}
+
+.hero-status-dot.secure {
+  background: var(--cyan);
+  box-shadow: 0 0 13px rgba(86, 230, 255, 0.62);
+}
+
+.hero-status-dot.core {
+  background: var(--signal);
+  box-shadow: 0 0 13px rgba(255, 52, 77, 0.65);
+}
+
+.hero-status-item small,
+.hero-status-item strong {
+  display: block;
+}
+
+.hero-status-item small {
+  color: var(--muted-2);
+  font-size: 7px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.hero-status-item strong {
+  margin-top: 3px;
+  font-size: 10px;
+}
+
+/* ---------- Command actions ---------- */
+
+.endfield-nexus-2026 .dashboard-toolbar {
+  margin: 0 0 16px;
+  padding: 11px;
+  gap: 9px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(12, 16, 22, 0.88);
+}
+
+.endfield-nexus-2026 .action-button {
+  min-height: 48px;
+  padding: 0 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background:
+    linear-gradient(
+      145deg,
+      #171c24,
+      #0d1117
+    );
+  color: #c3cad3;
+  font-size: 9px;
+  letter-spacing: 0.15px;
+  transition:
+    transform 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.endfield-nexus-2026 .action-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(255, 52, 77, 0.52);
+  color: var(--text);
+}
+
+.endfield-nexus-2026 .action-button.primary {
+  border-color: var(--signal);
+  background:
+    linear-gradient(
+      135deg,
+      #ff344d,
+      #dc1733
+    );
+  color: #fff;
+  box-shadow:
+    0 10px 26px rgba(255, 52, 77, 0.16);
+}
+
+.endfield-nexus-2026 .action-button.primary:hover:not(:disabled) {
+  background:
+    linear-gradient(
+      135deg,
+      #ff5368,
+      #eb1d3c
+    );
+  color: #fff;
+}
+
+/*
+ * Operation progress: clean percentage fill with a pulsing leading edge.
+ * No looping background-position animation.
+ */
+.endfield-nexus-2026 .action-button,
+.endfield-nexus-2026 .nav-button {
+  --operation-progress: 0%;
+  --operation-color: #ff344d;
+}
+
+.endfield-nexus-2026
+.action-button.is-loading::before,
+.endfield-nexus-2026
+.nav-button.is-loading::before,
+.endfield-nexus-2026
+.action-button.is-success::before,
+.endfield-nexus-2026
+.nav-button.is-success::before,
+.endfield-nexus-2026
+.action-button.is-error::before,
+.endfield-nexus-2026
+.nav-button.is-error::before {
+  z-index: 1;
+  width: var(--operation-progress);
+  border-right: 0;
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(
+        in srgb,
+        var(--operation-color) 13%,
+        transparent
+      ),
+      color-mix(
+        in srgb,
+        var(--operation-color) 30%,
+        transparent
+      )
+    );
+  box-shadow: none;
+  transition:
+    width 0.2s
+    cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.endfield-nexus-2026
+.action-button.is-loading::after,
+.endfield-nexus-2026
+.nav-button.is-loading::after,
+.endfield-nexus-2026
+.action-button.is-success::after,
+.endfield-nexus-2026
+.nav-button.is-success::after,
+.endfield-nexus-2026
+.action-button.is-error::after,
+.endfield-nexus-2026
+.nav-button.is-error::after {
+  z-index: 6;
+  height: 3px;
+  width: var(--operation-progress);
+  border-radius: 999px;
+  background: var(--operation-color);
+  background-size: auto;
+  box-shadow:
+    0 0 8px
+    color-mix(
+      in srgb,
+      var(--operation-color) 62%,
+      transparent
+    );
+  animation: none;
+  transition:
+    width 0.2s
+    cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.endfield-nexus-2026
+.action-button.is-loading,
+.endfield-nexus-2026
+.nav-button.is-loading {
+  border-color:
+    color-mix(
+      in srgb,
+      var(--operation-color) 62%,
+      var(--line)
+    );
+  background: #11151c;
+  color: #fff;
+  box-shadow:
+    0 0 0 1px
+    color-mix(
+      in srgb,
+      var(--operation-color) 9%,
+      transparent
+    )
+    inset;
+}
+
+.endfield-nexus-2026
+.action-button.is-loading::after,
+.endfield-nexus-2026
+.nav-button.is-loading::after {
+  animation:
+    nexus-progress-pulse
+    1.1s
+    ease-in-out
+    infinite;
+}
+
+@keyframes nexus-progress-pulse {
+  0%,
+  100% {
+    opacity: 0.72;
+  }
+
+  50% {
+    opacity: 1;
+    box-shadow:
+      0 0 13px
+      color-mix(
+        in srgb,
+        var(--operation-color) 80%,
+        transparent
+      );
+  }
+}
+
+.endfield-nexus-2026
+.action-button.is-success,
+.endfield-nexus-2026
+.nav-button.is-success {
+  border-color: rgba(82, 228, 155, 0.62);
+  border-radius: 12px;
+  background: #10241c;
+  color: #a7ffd0;
+}
+
+.endfield-nexus-2026
+.action-button.is-error,
+.endfield-nexus-2026
+.nav-button.is-error {
+  border-color: rgba(255, 101, 120, 0.62);
+  border-radius: 12px;
+  background: #2a1118;
+  color: #ffbdc6;
+}
+
+/* ---------- Dashboard panels ---------- */
+
+.endfield-nexus-2026 .overview-grid {
+  grid-template-columns:
+    minmax(320px, 0.95fr)
+    minmax(360px, 1fr)
+    minmax(390px, 1.12fr);
+  gap: 16px;
+}
+
+.endfield-nexus-2026 .panel {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(22, 27, 35, 0.98),
+      rgba(10, 13, 18, 0.98)
+    );
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.18);
+}
+
+.endfield-nexus-2026 .panel::before {
+  top: 0;
+  left: 0;
+  width: 72px;
+  height: 2px;
+  border: 0;
+  background:
+    linear-gradient(
+      90deg,
+      var(--signal),
+      transparent
+    );
+}
+
+.endfield-nexus-2026 .panel::after {
+  top: 0;
+  right: 0;
+  width: 72px;
+  height: 2px;
+  border: 0;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(86, 230, 255, 0.48)
+    );
+}
+
+.endfield-nexus-2026 .panel-header {
+  min-height: 68px;
+  padding: 16px 18px;
+  align-items: center;
+  border-bottom: 1px solid var(--line-soft);
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.018),
+      transparent
+    );
+}
+
+.endfield-nexus-2026 .panel-header h2 {
+  font-size: 14px;
+  letter-spacing: -0.15px;
+  text-transform: none;
+}
+
+.endfield-nexus-2026 .panel-header small {
+  margin-top: 5px;
+  color: #596474;
+  font-size: 7px;
+  letter-spacing: 0.75px;
+}
+
+.endfield-nexus-2026 .panel-header > span {
+  width: 29px;
+  height: 29px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line-soft);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.025);
+  color: #606b78;
+  font-size: 7px;
+}
+
+.endfield-nexus-2026
+.user-profile-body,
+.endfield-nexus-2026
+.stamina-body,
+.endfield-nexus-2026
+.activity-body {
+  min-height: 300px;
+  padding: 18px;
+}
+
+/* Profile */
+
+.endfield-nexus-2026 .profile-identity {
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 17px;
+  margin-bottom: 15px;
+  padding: 4px 0 18px;
+}
+
+.endfield-nexus-2026 .profile-avatar {
+  width: 76px;
+  height: 76px;
+  border: 1px solid rgba(255, 52, 77, 0.4);
+  border-radius: 18px;
+  overflow: hidden;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 52, 77, 0.15),
+      rgba(255, 255, 255, 0.025)
+    );
+}
+
+.endfield-nexus-2026 .profile-avatar img {
+  border-radius: 17px;
+}
+
+.endfield-nexus-2026 .profile-identity h3 {
+  font-size: 23px;
+  letter-spacing: -0.7px;
+}
+
+.endfield-nexus-2026 .profile-identity p {
+  margin-top: 5px;
+  color: var(--signal);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.endfield-nexus-2026 .identity-list {
+  border: 1px solid var(--line-soft);
+  border-radius: 13px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.endfield-nexus-2026 .identity-row {
+  min-height: 44px;
+  padding: 0 12px;
+}
+
+.endfield-nexus-2026 .identity-row + .identity-row {
+  border-top: 1px solid var(--line-soft);
+}
+
+.endfield-nexus-2026 .identity-row span {
+  font-size: 7px;
+}
+
+.endfield-nexus-2026 .identity-row strong {
+  font-size: 9px;
+}
+
+.endfield-nexus-2026 .profile-stats {
+  margin-top: 10px;
+  gap: 8px;
+}
+
+.endfield-nexus-2026 .metric-box {
+  min-height: 70px;
+  padding: 12px 8px;
+  border: 1px solid var(--line-soft);
+  border-radius: 13px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.035),
+      rgba(255, 255, 255, 0.012)
+    );
+}
+
+.endfield-nexus-2026 .metric-box span {
+  font-size: 6px;
+}
+
+.endfield-nexus-2026 .metric-box strong {
+  margin-top: 8px;
+  font-size: 16px;
+}
+
+/* Sanity */
+
+.endfield-nexus-2026 .stamina-body {
+  justify-content: center;
+}
+
+.endfield-nexus-2026 .sanity-radial {
+  width: clamp(190px, 55%, 232px);
+  margin: -7px auto -6px;
+}
+
+.endfield-nexus-2026 .sanity-radial-track {
+  stroke: #252b35;
+}
+
+.endfield-nexus-2026 .sanity-radial-progress {
+  filter:
+    drop-shadow(
+      0 0 6px
+      rgba(255, 52, 77, 0.34)
+    );
+}
+
+.endfield-nexus-2026 .sanity-radial-charge {
+  stroke-width: 5;
+  animation-duration: 2.8s;
+  filter:
+    drop-shadow(
+      0 0 5px
+      rgba(255, 255, 255, 0.55)
+    )
+    drop-shadow(
+      0 0 8px
+      rgba(255, 52, 77, 0.44)
+    );
+}
+
+.endfield-nexus-2026 .sanity-radial-center strong {
+  font-size: 34px;
+  letter-spacing: -1.8px;
+}
+
+.endfield-nexus-2026 .sanity-radial-icon {
+  width: 31px;
+  height: 31px;
+  border-radius: 10px;
+}
+
+.endfield-nexus-2026 .sanity-radial-caption {
+  margin-top: -7px;
+  color: #9ba5b1;
+  font-size: 8px;
+}
+
+.endfield-nexus-2026 .sanity-summary {
+  gap: 9px;
+}
+
+.endfield-nexus-2026 .sanity-summary-item {
+  min-height: 67px;
+  padding: 11px 12px;
+  border-radius: 13px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.035),
+      rgba(255, 255, 255, 0.012)
+    );
+}
+
+.endfield-nexus-2026 .sanity-last-update {
+  min-height: 39px;
+  padding: 10px 4px 0;
+}
+
+/* Tasks */
+
+.endfield-nexus-2026 .activity-body {
+  justify-content: center;
+  gap: 10px;
+}
+
+.endfield-nexus-2026 .activity-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+
+.endfield-nexus-2026 .task-block {
+  padding: 12px 13px 13px;
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      120deg,
+      var(--task-color-soft),
+      rgba(14, 18, 24, 0.96) 52%
+    );
+}
+
+.endfield-nexus-2026 .task-block::before {
+  top: 12px;
+  bottom: 12px;
+  left: 0;
+  width: 3px;
+  border-radius: 0 999px 999px 0;
+}
+
+.endfield-nexus-2026 .task-heading {
+  margin-bottom: 10px;
+}
+
+.endfield-nexus-2026 .task-heading > span {
+  font-size: 8px;
+}
+
+.endfield-nexus-2026 .task-percent {
+  min-width: 42px;
+  padding: 4px 6px;
+  border-radius: 999px;
+  font-size: 7px;
+}
+
+.endfield-nexus-2026 .task-meter {
+  height: 10px;
+  padding: 2px;
+  border: 0;
+  border-radius: 999px;
+  clip-path: none;
+  background: #252b34;
+}
+
+.endfield-nexus-2026 .task-meter::after {
+  inset: 2px;
+  border-radius: 999px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 18px,
+      rgba(6, 8, 11, 0.44) 18px 20px
+    );
+}
+
+.endfield-nexus-2026
+.task-meter .progress-fill {
+  border-radius: 999px;
+  clip-path: none;
+}
+
+.endfield-nexus-2026
+.task-meter .progress-fill::after {
+  opacity: 0.44;
+}
+
+/* Status rail */
+
+.endfield-nexus-2026 .status-panel {
+  margin-top: 16px;
+}
+
+.endfield-nexus-2026 .status-body {
+  padding: 14px;
+  gap: 9px;
+}
+
+.endfield-nexus-2026 .status-item {
+  min-height: 66px;
+  padding: 12px;
+  border-radius: 13px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.032),
+      rgba(255, 255, 255, 0.012)
+    );
+}
+
+.endfield-nexus-2026 .status-item span {
+  color: #66717e;
+  font-size: 7px;
+}
+
+.endfield-nexus-2026 .status-item strong {
+  margin-top: 8px;
+  font-size: 9px;
+}
+
+/* ---------- Notifications / toasts ---------- */
+
+.endfield-nexus-2026 .notification-panel {
+  top: calc(var(--topbar-height) + 14px);
+  right: 22px;
+  width: min(430px, calc(100vw - 28px));
+  border: 1px solid rgba(255, 52, 77, 0.38);
+  border-radius: 20px;
+  background: #0d1117;
+  box-shadow:
+    0 34px 100px rgba(0, 0, 0, 0.72);
+}
+
+.endfield-nexus-2026 .notification-panel::before {
+  border-radius: inherit;
+}
+
+.endfield-nexus-2026 .notification-panel-header {
+  min-height: 76px;
+  padding: 15px 16px;
+}
+
+.endfield-nexus-2026
+.notification-text-button,
+.endfield-nexus-2026
+.notification-footer-button {
+  border-radius: 10px;
+}
+
+.endfield-nexus-2026 .notification-item {
+  padding: 14px 16px;
+}
+
+.endfield-nexus-2026 .notification-item-icon {
+  border-radius: 11px;
+}
+
+.endfield-nexus-2026 .toast-region {
+  top: 92px;
+  right: 22px;
+}
+
+.endfield-nexus-2026 .toast {
+  padding: 15px 44px 15px 16px;
+  border-radius: 15px;
+  background: #111824;
+  box-shadow:
+    0 22px 64px rgba(0, 0, 0, 0.38);
+}
+
+.endfield-nexus-2026 .toast.success {
+  background: #10231b;
+}
+
+.endfield-nexus-2026 .toast.warning {
+  background: #28200e;
+}
+
+.endfield-nexus-2026 .toast.error {
+  background: #2b1118;
+}
+
+.endfield-nexus-2026 .toast-progress {
+  height: 3px;
+}
+
+/* ---------- Modals ---------- */
+
+.endfield-nexus-2026
+.connect-account-modal,
+.endfield-nexus-2026
+.delete-account-modal {
+  border-radius: 22px;
+}
+
+.endfield-nexus-2026
+.connect-account-header,
+.endfield-nexus-2026
+.delete-account-header {
+  min-height: 78px;
+  padding: 15px 18px;
+}
+
+.endfield-nexus-2026 .connect-account-close {
+  border-radius: 11px;
+}
+
+.endfield-nexus-2026
+.connect-account-steps > li,
+.endfield-nexus-2026
+.connect-terms,
+.endfield-nexus-2026
+.delete-account-warning,
+.endfield-nexus-2026
+.delete-account-target {
+  border-radius: 14px;
+}
+
+.endfield-nexus-2026 .connect-step-number,
+.endfield-nexus-2026 .delete-warning-icon {
+  border-radius: 10px;
+}
+
+.endfield-nexus-2026
+.connect-external-link,
+.endfield-nexus-2026
+.connect-clipboard-button,
+.endfield-nexus-2026
+.connect-secondary-button,
+.endfield-nexus-2026
+.delete-account-confirm {
+  border-radius: 11px;
+}
+
+.endfield-nexus-2026
+.connect-token-input,
+.endfield-nexus-2026
+.delete-account-pin {
+  border-radius: 12px;
+}
+
+.endfield-nexus-2026 .delete-account-message,
+.endfield-nexus-2026 .connect-token-status,
+.endfield-nexus-2026 .connect-auto-copy-status {
+  border-radius: 10px;
+}
+
+/* ---------- Login ---------- */
+
+.endfield-nexus-2026 .login-layer {
+  z-index: 90000;
+  padding: clamp(14px, 3vw, 34px);
+  grid-template-columns:
+    minmax(0, 1.25fr)
+    minmax(380px, 0.75fr);
+  gap: 16px;
+  background:
+    radial-gradient(
+      circle at 22% 62%,
+      rgba(255, 52, 77, 0.12),
+      transparent 34%
+    ),
+    #05070a;
+}
+
+.login-visual,
+.endfield-nexus-2026 .login-card {
+  height: min(760px, calc(100dvh - 68px));
+  min-height: 560px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+}
+
+.login-visual {
+  padding: clamp(28px, 5vw, 58px);
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(
+      circle at 82% 20%,
+      rgba(86, 230, 255, 0.11),
+      transparent 30%
+    ),
+    linear-gradient(
+      145deg,
+      #171d27,
+      #080b10 74%
+    );
+}
+
+.login-visual-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.4;
+  background:
+    linear-gradient(
+      118deg,
+      transparent 0 67%,
+      rgba(255, 52, 77, 0.07) 67% 67.35%,
+      transparent 67.35%
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.025) 0 1px,
+      transparent 1px 78px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.018) 0 1px,
+      transparent 1px 78px
+    );
+}
+
+.login-visual-brand,
+.login-visual-copy,
+.login-system-list,
+.login-visual-footer {
+  position: relative;
+  z-index: 1;
+}
+
+.login-visual-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.login-visual-logo {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 52, 77, 0.5);
+  border-radius: 15px;
+  background: rgba(255, 52, 77, 0.11);
+}
+
+.login-visual-logo img {
+  width: 34px;
+  height: 34px;
+  filter:
+    brightness(0)
+    invert(31%)
+    sepia(99%)
+    saturate(3661%)
+    hue-rotate(337deg)
+    brightness(105%);
+}
+
+.login-visual-brand small,
+.login-visual-brand strong {
+  display: block;
+}
+
+.login-visual-brand small {
+  color: var(--muted);
+  font-size: 8px;
+  letter-spacing: 1.8px;
+}
+
+.login-visual-brand strong {
+  margin-top: 4px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 18px;
+}
+
+.login-visual-copy {
+  margin-top: auto;
+  max-width: 740px;
+}
+
+.login-visual-copy > span {
+  color: var(--signal);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1.9px;
+}
+
+.login-visual-copy h2 {
+  margin-top: 13px;
+  font-size: clamp(34px, 5vw, 66px);
+  line-height: 0.98;
+  letter-spacing: -3px;
+}
+
+.login-visual-copy p {
+  max-width: 640px;
+  margin-top: 18px;
+  color: #929ca9;
+  font-size: 10px;
+  line-height: 1.8;
+}
+
+.login-system-list {
+  margin-top: 34px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 9px;
+}
+
+.login-system-list > div {
+  min-height: 92px;
+  padding: 13px;
+  border: 1px solid var(--line-soft);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.login-system-list span,
+.login-system-list strong,
+.login-system-list small {
+  display: block;
+}
+
+.login-system-list span {
+  color: var(--signal);
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.login-system-list strong {
+  margin-top: 14px;
+  font-size: 9px;
+}
+
+.login-system-list small {
+  margin-top: 5px;
+  color: var(--muted-2);
+  font-size: 7px;
+  line-height: 1.5;
+}
+
+.login-visual-footer {
+  margin-top: 24px;
+  display: flex;
+  justify-content: space-between;
+  color: #4f5966;
+  font-size: 7px;
+  letter-spacing: 1.2px;
+}
+
+.endfield-nexus-2026 .login-card {
+  width: auto;
+  padding: clamp(28px, 5vw, 52px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(22, 27, 35, 0.99),
+      rgba(8, 11, 16, 0.99)
+    );
+  box-shadow: none;
+}
+
+.endfield-nexus-2026 .login-card::before,
+.endfield-nexus-2026 .login-card::after {
+  display: none;
+}
+
+.login-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.endfield-nexus-2026 .login-kicker {
+  font-size: 8px;
+  letter-spacing: 1.8px;
+}
+
+.endfield-nexus-2026 .login-card h2 {
+  margin-top: 12px;
+  font-size: clamp(30px, 4vw, 46px);
+  letter-spacing: -1.7px;
+}
+
+.login-security-mark {
+  min-width: 48px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 52, 77, 0.42);
+  border-radius: 999px;
+  color: var(--signal);
+  font-size: 7px;
+  font-weight: 800;
+}
+
+.endfield-nexus-2026 .login-card p {
+  margin-top: 18px;
+  color: #8f99a5;
+  font-size: 10px;
+  line-height: 1.8;
+}
+
+.login-input-label {
+  margin-top: 28px;
+  color: #707b89;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.pin-field {
+  position: relative;
+  margin-top: 8px;
+}
+
+.endfield-nexus-2026 .pin-input {
+  height: 68px;
+  margin: 0;
+  padding: 0 86px 0 18px;
+  border-radius: 14px;
+  background: #070a0f;
+  color: #fff;
+  font-size: 25px;
+  letter-spacing: 12px;
+}
+
+.pin-field > span {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  padding: 5px 7px;
+  transform: translateY(-50%);
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  color: #5d6875;
+  font-size: 6px;
+}
+
+.endfield-nexus-2026 .login-button {
+  position: relative;
+  height: 50px;
+  margin-top: 12px;
+  overflow: hidden;
+  border-radius: 13px;
+  background:
+    linear-gradient(
+      135deg,
+      #ff344d,
+      #d91733
+    );
+  color: #fff;
+  font-size: 9px;
+}
+
+.endfield-nexus-2026
+.login-button::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      #fff,
+      transparent
+    );
+  opacity: 0;
+  transform: translate3d(-100%, 0, 0);
+}
+
+.endfield-nexus-2026
+.login-button.is-authenticating::after {
+  opacity: 0.9;
+  animation:
+    nexus-login-progress
+    1.2s
+    ease-in-out
+    infinite;
+}
+
+@keyframes nexus-login-progress {
+  to {
+    transform: translate3d(100%, 0, 0);
+  }
+}
+
+.endfield-nexus-2026 .login-message {
+  min-height: 34px;
+  margin-top: 10px;
+  padding: 9px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  font-size: 8px;
+}
+
+.login-encryption-note {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #5f6976;
+  font-size: 7px;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1280px) {
+  .endfield-nexus-2026 {
+    --sidebar-width: 252px;
+  }
+
+  .endfield-nexus-2026 .overview-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .endfield-nexus-2026 .activity-panel {
+    grid-column: span 2;
+  }
+
+  .endfield-nexus-2026 .activity-body {
+    min-height: auto;
+  }
+
+  .command-hero {
+    grid-template-columns:
+      minmax(0, 1.25fr)
+      minmax(290px, 0.75fr);
+  }
+}
+
+@media (max-width: 980px) {
+  .endfield-nexus-2026 .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .endfield-nexus-2026 .sidebar {
+    width: min(330px, 88vw);
+  }
+
+  .endfield-nexus-2026 .topbar {
+    padding: 0 16px;
+  }
+
+  .endfield-nexus-2026 .main-content {
+    padding: 20px 16px 88px;
+  }
+
+  .command-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-status-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .endfield-nexus-2026 .overview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .endfield-nexus-2026 .activity-panel {
+    grid-column: auto;
+  }
+
+  .login-visual {
+    display: none;
+  }
+
+  .endfield-nexus-2026 .login-layer {
+    grid-template-columns: 1fr;
+    place-items: center;
+  }
+
+  .endfield-nexus-2026 .login-card {
+    width: min(520px, 100%);
+    height: auto;
+    min-height: 520px;
+  }
+}
+
+@media (max-width: 680px) {
+  .endfield-nexus-2026 {
+    --topbar-height: 66px;
+  }
+
+  .endfield-nexus-2026 .topbar-title {
+    display: grid;
+    grid-template-columns: auto 1fr;
+  }
+
+  .endfield-nexus-2026 .topbar-path {
+    display: none;
+  }
+
+  .endfield-nexus-2026 .topbar-title > strong {
+    font-size: 11px;
+  }
+
+  .endfield-nexus-2026 .topbar-status {
+    display: none;
+  }
+
+  .command-hero {
+    min-height: 0;
+    padding: 22px 18px;
+    border-radius: 18px;
+  }
+
+  .command-hero::after {
+    font-size: 56px;
+  }
+
+  .endfield-nexus-2026 .page-title-row h1 {
+    font-size: 38px;
+    letter-spacing: -1.7px;
+  }
+
+  .hero-status-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-status-item {
+    min-height: 48px;
+  }
+
+  .endfield-nexus-2026 .dashboard-toolbar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .endfield-nexus-2026 .action-button {
+    width: 100%;
+    padding-inline: 12px;
+    font-size: 8px;
+  }
+
+  .endfield-nexus-2026
+  .user-profile-body,
+  .endfield-nexus-2026
+  .stamina-body,
+  .endfield-nexus-2026
+  .activity-body {
+    min-height: auto;
+  }
+
+  .endfield-nexus-2026 .status-body {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .endfield-nexus-2026 .notification-panel {
+    top: 8px;
+    right: 8px;
+    bottom:
+      calc(
+        76px +
+        env(safe-area-inset-bottom)
+      );
+    width: calc(100vw - 16px);
+    height: auto;
+    border-radius: 18px;
+  }
+
+  .boot-terminal {
+    padding: 23px;
+    border-radius: 18px;
+  }
+
+  .boot-copy {
+    margin-top: 38px;
+  }
+
+  .boot-diagnostics {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 430px) {
+  .endfield-nexus-2026 .main-content {
+    padding-inline: 10px;
+  }
+
+  .command-hero {
+    padding-inline: 15px;
+  }
+
+  .endfield-nexus-2026 .page-title-row {
+    align-items: flex-start;
+  }
+
+  .endfield-nexus-2026 .page-title-row h1 {
+    font-size: 34px;
+  }
+
+  .endfield-nexus-2026 .dashboard-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .endfield-nexus-2026 .panel {
+    border-radius: 16px;
+  }
+
+  .endfield-nexus-2026 .panel-header {
+    padding-inline: 14px;
+  }
+
+  .endfield-nexus-2026
+  .user-profile-body,
+  .endfield-nexus-2026
+  .stamina-body,
+  .endfield-nexus-2026
+  .activity-body {
+    padding: 14px;
+  }
+
+  .endfield-nexus-2026 .profile-identity {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+
+  .endfield-nexus-2026 .profile-avatar {
+    width: 64px;
+    height: 64px;
+  }
+
+  .endfield-nexus-2026 .sanity-radial {
+    width: min(210px, 72vw);
+  }
+
+  .endfield-nexus-2026 .sanity-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .endfield-nexus-2026 .status-body {
+    grid-template-columns: 1fr;
+  }
+
+  .endfield-nexus-2026 .login-card {
+    min-height: 0;
+    padding: 24px 18px;
+    border-radius: 18px;
+  }
+
+  .endfield-nexus-2026 .login-card h2 {
+    font-size: 33px;
+  }
+
+  .endfield-nexus-2026 .pin-input {
+    padding-right: 74px;
+    font-size: 22px;
+    letter-spacing: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boot-progress > span,
+  .command-progress-line > span,
+  .endfield-nexus-2026
+  .login-button.is-authenticating::after,
+  .endfield-nexus-2026
+  .action-button.is-loading::after,
+  .endfield-nexus-2026
+  .nav-button.is-loading::after {
+    animation-duration: 3s;
+  }
+}

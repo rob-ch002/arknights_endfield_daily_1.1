@@ -395,7 +395,12 @@ $("#loginForm").addEventListener("submit", async event => {
   }
 
   button.disabled = true;
-  message.textContent = "AUTHENTICATING...";
+  button.classList.add(
+    "is-authenticating"
+  );
+
+  message.textContent =
+    "STATUS // AUTHENTICATING...";
 
   try {
     const hash = await sha256Text(input.value);
@@ -423,6 +428,10 @@ $("#loginForm").addEventListener("submit", async event => {
     });
   } finally {
     button.disabled = false;
+
+    button.classList.remove(
+      "is-authenticating"
+    );
   }
 });
 
@@ -2034,19 +2043,18 @@ function setButtonOperationLabel(
 }
 
 function operationColorForProgress(progress) {
-  /*
-   * Perubahan warna:
-   * merah → magenta → biru → cyan → hijau.
-   */
   const clamped =
     Math.max(0, Math.min(100, progress));
 
-  const hue =
-    Math.round(
-      350 - clamped * 2.3
-    );
+  if (clamped >= 82) {
+    return "#ffbe63";
+  }
 
-  return `hsl(${hue} 94% 58%)`;
+  if (clamped >= 48) {
+    return "#ff6b52";
+  }
+
+  return "#ff344d";
 }
 
 function paintOperationProgress(
@@ -2092,9 +2100,15 @@ function paintOperationProgress(
       color
     );
 
+    const operationPrefix = {
+      refresh: "SYNC",
+      checkin: "CHECK",
+      connect: "LINK"
+    }[operationName] || "EXEC";
+
     setButtonOperationLabel(
       button,
-      `${rounded}%`
+      `${operationPrefix} ${rounded}%`
     );
   });
 }
@@ -2312,6 +2326,10 @@ async function syncState({
   let manualSuccessful = false;
 
   if (manual) {
+    document.body.classList.add(
+      "is-command-syncing"
+    );
+
     setRefreshButtonsDisabled(true);
     startOperationProgress("refresh");
   }
@@ -2346,9 +2364,6 @@ async function syncState({
   } catch (error) {
     console.error("[SYNC]", error);
 
-    $("#cacheBadge").textContent =
-      "SYNC • ERROR";
-
     if (manual || !state.data) {
       showToast({
         type: "error",
@@ -2367,6 +2382,10 @@ async function syncState({
       );
 
       setRefreshButtonsDisabled(false);
+
+      document.body.classList.remove(
+        "is-command-syncing"
+      );
     }
 
     state.requestInProgress = false;
@@ -2531,6 +2550,10 @@ async function runCheckin() {
   state.checkingIn = true;
   let checkinSuccessful = false;
 
+  document.body.classList.add(
+    "is-command-syncing"
+  );
+
   setCheckinState(true);
   startOperationProgress("checkin");
 
@@ -2586,6 +2609,11 @@ async function runCheckin() {
     );
 
     setCheckinState(false);
+
+    document.body.classList.remove(
+      "is-command-syncing"
+    );
+
     state.checkingIn = false;
   }
 }
@@ -3898,56 +3926,201 @@ function bindConnectAccount() {
   );
 }
 
-async function initialize() {
-  loadNotificationStorage();
-  bindNotificationCenter();
-  bindConnectAccount();
-  bindDeleteAccount();
-  renderNotificationCenter();
+const bootSequenceState = {
+  value: 0,
+  timer: null
+};
 
-  await loadAvatarManifest();
+function updateBootSequence(
+  value,
+  message
+) {
+  const overlay =
+    $("#bootOverlay");
 
-  renderAccountList();
-  renderSelectedAccount();
-  bindCopyUidInteraction();
-
-  const authorized =
-    sessionStorage.getItem(SESSION_KEY) === "1";
-
-  setAuthorized(authorized);
-
-  if (authorized) {
-    await syncState({
-      action: "state",
-      manual: false
-    });
+  if (!overlay || overlay.hidden) {
+    return;
   }
 
-  document.addEventListener(
-    "visibilitychange",
-    () => {
-      if (!document.hidden) {
-        if (
-          sessionStorage.getItem(SESSION_KEY) === "1"
-        ) {
-          syncState({
-            action: "state",
-            manual: false
-          });
+  const safeValue =
+    Math.max(
+      bootSequenceState.value,
+      Math.min(100, value)
+    );
 
-          loadAvatarManifest();
+  bootSequenceState.value =
+    safeValue;
+
+  $("#bootProgressBar").style.width =
+    `${safeValue}%`;
+
+  $("#bootProgressValue").textContent =
+    `${Math.round(safeValue)}%`;
+
+  $(".boot-progress").setAttribute(
+    "aria-valuenow",
+    String(Math.round(safeValue))
+  );
+
+  if (message) {
+    $("#bootStatusText").textContent =
+      message;
+  }
+}
+
+function startBootSequence() {
+  updateBootSequence(
+    6,
+    "Loading interface modules..."
+  );
+
+  bootSequenceState.timer =
+    setInterval(() => {
+      if (
+        bootSequenceState.value >= 84
+      ) {
+        return;
+      }
+
+      const increment =
+        Math.max(
+          0.4,
+          (86 - bootSequenceState.value) *
+          0.035
+        );
+
+      updateBootSequence(
+        bootSequenceState.value +
+        increment
+      );
+    }, 110);
+}
+
+async function finishBootSequence() {
+  if (bootSequenceState.timer !== null) {
+    clearInterval(
+      bootSequenceState.timer
+    );
+
+    bootSequenceState.timer =
+      null;
+  }
+
+  updateBootSequence(
+    100,
+    "Command Nexus ready."
+  );
+
+  await new Promise(resolve => {
+    setTimeout(resolve, 280);
+  });
+
+  const overlay =
+    $("#bootOverlay");
+
+  if (!overlay) {
+    return;
+  }
+
+  overlay.classList.add(
+    "is-complete"
+  );
+
+  await new Promise(resolve => {
+    setTimeout(resolve, 480);
+  });
+
+  overlay.hidden =
+    true;
+}
+
+async function initialize() {
+  startBootSequence();
+
+  try {
+    loadNotificationStorage();
+    bindNotificationCenter();
+    bindConnectAccount();
+    bindDeleteAccount();
+    renderNotificationCenter();
+
+    updateBootSequence(
+      22,
+      "Mounting notification and command modules..."
+    );
+
+    await loadAvatarManifest();
+
+    updateBootSequence(
+      42,
+      "Mapping operator avatar resources..."
+    );
+
+    renderAccountList();
+    renderSelectedAccount();
+    bindCopyUidInteraction();
+
+    updateBootSequence(
+      61,
+      "Building account telemetry grid..."
+    );
+
+    const authorized =
+      sessionStorage.getItem(
+        SESSION_KEY
+      ) === "1";
+
+    setAuthorized(authorized);
+
+    updateBootSequence(
+      76,
+      authorized
+        ? "Restoring authorized session..."
+        : "Secure access node ready."
+    );
+
+    if (authorized) {
+      await syncState({
+        action: "state",
+        manual: false
+      });
+
+      updateBootSequence(
+        94,
+        "Live telemetry synchronized."
+      );
+    }
+
+    document.addEventListener(
+      "visibilitychange",
+      () => {
+        if (!document.hidden) {
+          if (
+            sessionStorage.getItem(
+              SESSION_KEY
+            ) === "1"
+          ) {
+            syncState({
+              action: "state",
+              manual: false
+            });
+
+            loadAvatarManifest();
+          }
         }
       }
-    }
-  );
+    );
 
-  window.addEventListener(
-    "beforeunload",
-    () => {
-      stopAutoSync();
-      stopAvatarManifestSync();
-    }
-  );
+    window.addEventListener(
+      "beforeunload",
+      () => {
+        stopAutoSync();
+        stopAvatarManifestSync();
+      }
+    );
+  } finally {
+    await finishBootSequence();
+  }
 }
 
 initialize();

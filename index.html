@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#050607">
+  <meta name="theme-color" content="#07090d">
 
-  <title>Endfield Protocol Dashboard</title>
+  <title>Endfield Command Nexus</title>
 
   <link rel="icon" type="image/png"
         href="https://cdn2.cdnstep.com/uZonBNFhuQtCPjNRKuWd/cover-2.thumb256.png">
@@ -13,10 +13,58 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap"
         rel="stylesheet">
-  <link rel="stylesheet" href="./dashboard.css?v=20260721-backend23">
+  <link rel="stylesheet" href="./dashboard.css?v=20260724-nexus24">
 </head>
 
-<body>
+<body class="endfield-nexus-2026">
+  <div
+    id="bootOverlay"
+    class="boot-overlay"
+    aria-live="polite">
+    <section class="boot-terminal">
+      <div class="boot-brand">
+        <span class="boot-logo">
+          <img
+            src="https://raw.githubusercontent.com/Yue-plus/endfield_icons/main/svg/endfield-industries.svg"
+            alt="">
+        </span>
+
+        <div>
+          <small>ENDFIELD INDUSTRIES</small>
+          <strong>COMMAND NEXUS</strong>
+        </div>
+      </div>
+
+      <div class="boot-copy">
+        <span>OPERATOR LINK // INITIALIZATION</span>
+        <h1>Establishing neural telemetry</h1>
+        <p id="bootStatusText">
+          Loading interface modules...
+        </p>
+      </div>
+
+      <div
+        class="boot-progress"
+        role="progressbar"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="0">
+        <span id="bootProgressBar"></span>
+      </div>
+
+      <div class="boot-progress-meta">
+        <span>ENDFIELD/NEXUS/BOOT</span>
+        <strong id="bootProgressValue">0%</strong>
+      </div>
+
+      <div class="boot-diagnostics">
+        <span>AUTH NODE</span>
+        <span>TELEMETRY</span>
+        <span>ACCOUNT GRID</span>
+      </div>
+    </section>
+  </div>
+
   <div class="background-media" aria-hidden="true"></div>
 
   <div class="app-shell">
@@ -29,8 +77,8 @@
         </div>
 
         <div class="brand-copy">
-          <span class="brand-title">Endfield <span class="brand-slash">//</span> Protocol</span>
-          <span class="brand-beta">BETA</span>
+          <span class="brand-title">Endfield <span class="brand-slash">//</span> Nexus</span>
+          <span class="brand-beta">2026</span>
         </div>
       </div>
 
@@ -90,13 +138,14 @@
                   class="mobile-menu-button"
                   type="button"
                   aria-label="Buka menu">☰</button>
-          <span>Control Panel / Dashboard</span>
+          <span class="topbar-path">COMMAND NEXUS</span>
+          <strong>Operator Dashboard</strong>
         </div>
 
         <div class="topbar-actions">
           <div class="topbar-status">
             <span id="networkIndicator" class="online-dot"></span>
-            <span>Global Network Online</span>
+            <span>Command Link Stable</span>
           </div>
 
           <div class="notification-center">
@@ -119,16 +168,58 @@
 
           </div>
         </div>
+
+        <div
+          class="command-progress-line"
+          aria-hidden="true">
+          <span></span>
+        </div>
       </header>
 
       <main class="main-content">
         <div class="content-width">
-          <section class="page-heading">
-            <div class="page-title-row">
-              <h1>Data Overview</h1>
-              <span class="badge">Beta 1.0</span>
+          <section class="page-heading command-hero">
+            <div class="command-hero-copy">
+              <span class="hero-kicker">
+                ENDFIELD INDUSTRIES // OPERATOR NETWORK
+              </span>
+
+              <div class="page-title-row">
+                <h1>Command Nexus</h1>
+                <span class="badge">Interface 2.6</span>
+              </div>
+
+              <p>
+                Live account telemetry, energy control,
+                task monitoring, and attendance protocol.
+              </p>
             </div>
-            <p>Real-time operator account information</p>
+
+            <div class="hero-status-grid">
+              <div class="hero-status-item">
+                <span class="hero-status-dot online"></span>
+                <div>
+                  <small>Telemetry</small>
+                  <strong>Live feed</strong>
+                </div>
+              </div>
+
+              <div class="hero-status-item">
+                <span class="hero-status-dot secure"></span>
+                <div>
+                  <small>Session</small>
+                  <strong>Encrypted</strong>
+                </div>
+              </div>
+
+              <div class="hero-status-item">
+                <span class="hero-status-dot core"></span>
+                <div>
+                  <small>Core</small>
+                  <strong>Operational</strong>
+                </div>
+              </div>
+            </div>
           </section>
 
           <div class="dashboard-toolbar">
@@ -141,14 +232,14 @@
                 <path d="m8 15 2.2 2.2L16.5 11"/>
               </svg>
               </span>
-              <span>Check-in</span>
+              <span>Execute Check-in</span>
             </button>
 
             <button id="refreshButton"
                     class="action-button"
                     type="button">
               <span>↻</span>
-              <span>Refresh</span>
+              <span>Sync Telemetry</span>
             </button>
 
             <span id="toolbarInfo" aria-hidden="true"></span>
@@ -159,8 +250,8 @@
             <article class="panel user-panel">
               <header class="panel-header">
                 <div>
-                  <h2>User Profile</h2>
-                  <small>User profile</small>
+                  <h2>Operator Identity</h2>
+                  <small>Account / Identity Matrix</small>
                 </div>
                 <span>01</span>
               </header>
@@ -231,8 +322,8 @@
             <article class="panel stamina-panel">
               <header class="panel-header">
                 <div>
-                  <h2>Stamina</h2>
-                  <small>Sanity / energy</small>
+                  <h2>Energy Core</h2>
+                  <small>Sanity / Regeneration Cycle</small>
                 </div>
                 <span>02</span>
               </header>
@@ -367,8 +458,8 @@
             <article class="panel activity-panel">
               <header class="panel-header">
                 <div>
-                  <h2>Activity Tasks</h2>
-                  <small>Activity</small>
+                  <h2>Mission Progress</h2>
+                  <small>Daily / Weekly Protocol</small>
                 </div>
                 <span>03</span>
               </header>
@@ -465,8 +556,8 @@
           <section class="panel status-panel">
             <header class="panel-header">
               <div>
-                <h2>Account Sync Status</h2>
-                <small>Source availability and refresh state</small>
+                <h2>Network Integrity</h2>
+                <small>Source Link / Telemetry Health</small>
               </div>
               <span>04</span>
             </header>
@@ -798,41 +889,108 @@
        aria-live="polite"></div>
 
   <div id="loginLayer" class="login-layer">
+    <section class="login-visual" aria-hidden="true">
+      <div class="login-visual-grid"></div>
+
+      <div class="login-visual-brand">
+        <span class="login-visual-logo">
+          <img
+            src="https://raw.githubusercontent.com/Yue-plus/endfield_icons/main/svg/endfield-industries.svg"
+            alt="">
+        </span>
+
+        <div>
+          <small>ENDFIELD INDUSTRIES</small>
+          <strong>COMMAND NEXUS</strong>
+        </div>
+      </div>
+
+      <div class="login-visual-copy">
+        <span>PRIVATE OPERATOR NETWORK</span>
+        <h2>Control every linked account from one terminal.</h2>
+        <p>
+          Account telemetry, Sanity monitoring, mission progress,
+          notifications, and automated attendance in one secure interface.
+        </p>
+      </div>
+
+      <div class="login-system-list">
+        <div>
+          <span>01</span>
+          <strong>Identity Matrix</strong>
+          <small>Multi-account operator profiles</small>
+        </div>
+        <div>
+          <span>02</span>
+          <strong>Energy Telemetry</strong>
+          <small>Live Sanity recovery monitoring</small>
+        </div>
+        <div>
+          <span>03</span>
+          <strong>Protocol Automation</strong>
+          <small>Attendance and notification routing</small>
+        </div>
+      </div>
+
+      <div class="login-visual-footer">
+        <span>ORIGINIUM NETWORK</span>
+        <span>NODE // AE-26</span>
+      </div>
+    </section>
+
     <form id="loginForm"
           class="login-card"
           autocomplete="off">
-      <div class="login-kicker">
-        SECURE PROTOCOL // SIX-DIGIT PIN
+      <div class="login-card-head">
+        <div>
+          <div class="login-kicker">
+            SECURE ACCESS // LEVEL 06
+          </div>
+
+          <h2>Authorize operator</h2>
+        </div>
+
+        <span class="login-security-mark">AUTH</span>
       </div>
 
-      <h2>Operator Database</h2>
-
       <p>
-        Masukkan PIN 6 digit untuk membuka dashboard privat Endfield.
+        Enter the six-digit command PIN to establish a private session.
       </p>
 
-      <input id="pinInput"
-             class="pin-input"
-             type="password"
-             inputmode="numeric"
-             maxlength="6"
-             placeholder="••••••"
-             required>
+      <label for="pinInput" class="login-input-label">
+        Command PIN
+      </label>
+
+      <div class="pin-field">
+        <input id="pinInput"
+               class="pin-input"
+               type="password"
+               inputmode="numeric"
+               maxlength="6"
+               placeholder="••••••"
+               required>
+        <span>6 DIGIT</span>
+      </div>
 
       <button id="loginButton"
               class="login-button"
               type="submit">
-        AUTHORIZE SESSION
+        <span>Authorize Session</span>
       </button>
 
       <div id="loginMessage"
            class="login-message">
-        STATUS: AWAITING AUTHORIZATION
+        STATUS // AWAITING AUTHORIZATION
+      </div>
+
+      <div class="login-encryption-note">
+        <span class="online-dot"></span>
+        Local PIN validation • Session-only authorization
       </div>
     </form>
   </div>
 
-  <script src="./config.js?v=20260721-backend23"></script>
-  <script src="./dashboard.js?v=20260721-backend23"></script>
+  <script src="./config.js?v=20260724-nexus24"></script>
+  <script src="./dashboard.js?v=20260724-nexus24"></script>
 </body>
 </html>
