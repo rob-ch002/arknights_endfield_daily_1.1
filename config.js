@@ -1,7 +1,7 @@
 "use strict";
 
 window.ENDFIELD_CONFIG = Object.freeze({
-  configVersion: "31.1",
+  configVersion: "31.2",
   /*
    * Gunakan URL deployment Google Apps Script milikmu.
    * Bila kamu membuat deployment baru dengan URL berbeda,

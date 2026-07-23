@@ -18,7 +18,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="application-name" content="Endfield Protocol">
-  <link rel="stylesheet" href="./dashboard.css?v=20260724-reliability311">
+  <link rel="stylesheet" href="./dashboard.css?v=20260724-reliability312">
 </head>
 
 <body class="endfield-nexus-2026 is-loading-dashboard">
@@ -449,6 +449,21 @@
 
       <main class="main-content">
         <div class="content-width">
+          <div
+            id="backendCompatibilityBanner"
+            class="backend-compatibility-banner"
+            role="status"
+            aria-live="polite"
+            hidden>
+            <svg class="nexus-icon" aria-hidden="true">
+              <use href="#nx-warning"></use>
+            </svg>
+            <div>
+              <strong id="backendCompatibilityTitle">Backend update required</strong>
+              <span id="backendCompatibilityMessage">Checking Google Apps Script compatibility...</span>
+            </div>
+            <button id="recheckBackendButton" type="button">Recheck</button>
+          </div>
           <section class="page-heading command-hero">
             <div class="command-hero-copy">
               <span class="hero-kicker">
@@ -457,7 +472,7 @@
 
               <div class="page-title-row">
                 <h1>Command Nexus</h1>
-                <span class="badge">Reliability 3.1</span>
+                <span class="badge">Reliability 3.1.2</span>
               </div>
 
               <p>
@@ -878,8 +893,10 @@
         <button id="closeDiagnostics" class="utility-close" type="button" aria-label="Tutup"><svg class="nexus-icon"><use href="#nx-close"></use></svg></button>
       </header>
       <div class="diagnostics-grid">
-        <div><span>Frontend version</span><strong id="diagFrontendVersion">31.0</strong></div>
+        <div><span>Frontend version</span><strong id="diagFrontendVersion">31.2</strong></div>
         <div><span>GAS API version</span><strong id="diagApiVersion">Checking...</strong></div>
+        <div><span>Backend compatibility</span><strong id="diagBackendCompatibility">Checking...</strong></div>
+        <div><span>Missing actions</span><strong id="diagMissingActions">—</strong></div>
         <div><span>Available actions</span><strong id="diagActions">—</strong></div>
         <div><span>Last successful request</span><strong id="diagLastSuccess">—</strong></div>
         <div><span>Average response time</span><strong id="diagAvgResponse">—</strong></div>
@@ -912,6 +929,7 @@
         <label>Account<select id="historyAccountSelect"></select></label>
         <button id="refreshHistory" class="action-button" type="button">Refresh History</button>
       </div>
+      <div id="historyBackendStatus" class="feature-backend-status" hidden></div>
       <div id="historyStatus" class="reliability-status">Waiting for history data.</div>
       <div class="history-grid">
         <article class="history-card history-card-wide">
@@ -940,6 +958,7 @@
         <p>Validasi manual dapat memakai beberapa request API. Jalankan saat diperlukan.</p>
         <button id="runTokenHealth" class="action-button primary" type="button">Validate All Tokens</button>
       </div>
+      <div id="tokenHealthBackendStatus" class="feature-backend-status" hidden></div>
       <div id="tokenHealthStatus" class="reliability-status">Select validation to inspect linked sessions.</div>
       <div id="tokenHealthList" class="token-health-list"></div>
     </section>
@@ -1418,7 +1437,7 @@
     </form>
   </div>
 
-  <script src="./config.js?v=20260724-reliability311"></script>
-  <script src="./dashboard.js?v=20260724-reliability311"></script>
+  <script src="./config.js?v=20260724-reliability312"></script>
+  <script src="./dashboard.js?v=20260724-reliability312"></script>
 </body>
 </html>

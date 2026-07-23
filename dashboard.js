@@ -23,7 +23,7 @@ const DEVICE_NOTIFICATION_ICON =
   "https://raw.githubusercontent.com/Yue-plus/endfield_icons/main/svg/endfield-industries.svg";
 const ACCOUNT_TOKEN_API_URL =
   "https://web-api.gryphline.com/cookie_store/account_token";
-const FRONTEND_VERSION = "31.1";
+const FRONTEND_VERSION = "31.2";
 const REQUEST_METRICS_KEY = "endfield_request_metrics_v1";
 const LAST_CHECKIN_KEY = "endfield_last_checkin_v1";
 const PERFORMANCE_MODE_KEY = "endfield_performance_mode_v1";
@@ -42,6 +42,41 @@ const DEFAULT_NOTIFICATION_SETTINGS = Object.freeze({
   weeklyIncomplete: false,
   checkinFailed: true
 });
+
+const REQUIRED_BACKEND_VERSION = "31.2";
+
+const REQUIRED_BACKEND_ACTIONS = Object.freeze([
+  "state",
+  "sync",
+  "run",
+  "addaccount",
+  "updateaccount",
+  "reorderaccounts",
+  "syncaccount",
+  "deleteaccount",
+  "history",
+  "tokenhealth",
+  "quotastatus",
+  "exportconfig",
+  "restoreconfig",
+  "registerpush",
+  "unregisterpush",
+  "pushbatch",
+  "ackpush",
+  "capabilities"
+]);
+
+const RELIABILITY_ACTIONS = new Set([
+  "history",
+  "tokenhealth",
+  "quotastatus",
+  "exportconfig",
+  "restoreconfig",
+  "registerpush",
+  "unregisterpush",
+  "pushbatch",
+  "ackpush"
+]);
 
 const FALLBACK_ACCOUNTS = [
   { slug: "muzaka" },
@@ -72,6 +107,8 @@ const state = {
   deletingAccount: false,
   managerSlug: null,
   backendCapabilities: null,
+  backendCompatibility: null,
+  backendCapabilityPromise: null,
   requestDurations: [],
   lastSuccessfulRequestAt: null,
   freshnessTimer: null,
@@ -176,24 +213,252 @@ function delay(milliseconds) {
   return new Promise(resolve => setTimeout(resolve, milliseconds));
 }
 
+function normalizeBackendAction(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function compareVersionParts(actual, required) {
+  const parse = value =>
+    String(value || "0")
+      .split(".")
+      .map(part => Number.parseInt(part, 10) || 0);
+
+  const left = parse(actual);
+  const right = parse(required);
+  const length = Math.max(left.length, right.length);
+
+  for (let index = 0; index < length; index += 1) {
+    const leftValue = left[index] || 0;
+    const rightValue = right[index] || 0;
+
+    if (leftValue > rightValue) return 1;
+    if (leftValue < rightValue) return -1;
+  }
+
+  return 0;
+}
+
+function analyzeBackendCapabilities(response) {
+  const actions = Array.isArray(response?.actions)
+    ? response.actions.map(normalizeBackendAction).filter(Boolean)
+    : [];
+
+  const actionSet = new Set(actions);
+  const missing = REQUIRED_BACKEND_ACTIONS.filter(
+    action => !actionSet.has(normalizeBackendAction(action))
+  );
+
+  const apiVersion = String(response?.apiVersion || "unknown");
+  const versionCompatible =
+    apiVersion !== "unknown" &&
+    compareVersionParts(apiVersion, REQUIRED_BACKEND_VERSION) >= 0;
+
+  return {
+    reachable: Boolean(response),
+    apiVersion,
+    actions,
+    missing,
+    versionCompatible,
+    actionCompatible: missing.length === 0,
+    compatible: versionCompatible && missing.length === 0
+  };
+}
+
+function backendUpdateMessage(compatibility, action = "") {
+  const requestedAction = normalizeBackendAction(action);
+  const featureName = requestedAction
+    ? `Action '${requestedAction}'`
+    : "Reliability Suite";
+
+  const version = compatibility?.apiVersion || "unknown";
+  const missing = compatibility?.missing || [];
+  const missingText = missing.length
+    ? ` Missing: ${missing.join(", ")}.`
+    : "";
+
+  return (
+    `${featureName} membutuhkan Google Apps Script API v${REQUIRED_BACKEND_VERSION}. ` +
+    `Deployment aktif saat ini: v${version}.${missingText} ` +
+    "Timpa Code.gs dari paket v31.2, lalu Deploy → Manage deployments → Edit → New version → Deploy."
+  );
+}
+
+function renderBackendCompatibility() {
+  const compatibility = state.backendCompatibility;
+  const banner = $("#backendCompatibilityBanner");
+
+  if (!banner) return;
+
+  const title = $("#backendCompatibilityTitle");
+  const message = $("#backendCompatibilityMessage");
+
+  if (!compatibility) {
+    banner.hidden = false;
+    banner.className = "backend-compatibility-banner";
+    title.textContent = "Checking backend";
+    message.textContent = "Reading Google Apps Script API version and actions.";
+    return;
+  }
+
+  if (compatibility.compatible) {
+    banner.hidden = true;
+    banner.className = "backend-compatibility-banner is-ready";
+  } else {
+    banner.hidden = false;
+    banner.className = "backend-compatibility-banner is-error";
+    title.textContent = "Google Apps Script update required";
+    message.textContent = backendUpdateMessage(compatibility);
+  }
+
+  const historySupported = compatibility.actions.includes("history");
+  const tokenSupported = compatibility.actions.includes("tokenhealth");
+
+  $("#historyButton")?.classList.toggle("backend-unsupported", !historySupported);
+  $("#tokenHealthButton")?.classList.toggle("backend-unsupported", !tokenSupported);
+
+  const historyStatus = $("#historyBackendStatus");
+  if (historyStatus) {
+    historyStatus.hidden = historySupported;
+    if (!historySupported) {
+      historyStatus.textContent = backendUpdateMessage(compatibility, "history");
+    }
+  }
+
+  const tokenStatus = $("#tokenHealthBackendStatus");
+  if (tokenStatus) {
+    tokenStatus.hidden = tokenSupported;
+    if (!tokenSupported) {
+      tokenStatus.textContent = backendUpdateMessage(compatibility, "tokenhealth");
+    }
+  }
+}
+
+async function refreshBackendCompatibility({ force = false, silent = false } = {}) {
+  if (state.backendCapabilityPromise && !force) {
+    return state.backendCapabilityPromise;
+  }
+
+  state.backendCapabilityPromise = (async () => {
+    try {
+      const response = await gasRequest("capabilities");
+      state.backendCapabilities = response;
+      state.backendCompatibility = analyzeBackendCapabilities(response);
+    } catch (error) {
+      state.backendCapabilities = null;
+      state.backendCompatibility = {
+        reachable: false,
+        apiVersion: "offline",
+        actions: [],
+        missing: [...REQUIRED_BACKEND_ACTIONS],
+        versionCompatible: false,
+        actionCompatible: false,
+        compatible: false,
+        error: error?.message || "Backend unavailable"
+      };
+    }
+
+    renderBackendCompatibility();
+
+    if (!silent && !state.backendCompatibility.compatible) {
+      showToast({
+        type: "warning",
+        title: "Backend update required",
+        message: backendUpdateMessage(state.backendCompatibility),
+        duration: 11000
+      });
+    }
+
+    return state.backendCompatibility;
+  })();
+
+  try {
+    return await state.backendCapabilityPromise;
+  } finally {
+    state.backendCapabilityPromise = null;
+  }
+}
+
+async function ensureBackendAction(action) {
+  const normalizedAction = normalizeBackendAction(action);
+
+  if (!RELIABILITY_ACTIONS.has(normalizedAction)) {
+    return true;
+  }
+
+  const compatibility =
+    state.backendCompatibility ||
+    await refreshBackendCompatibility({ silent: true });
+
+  if (compatibility?.actions?.includes(normalizedAction)) {
+    return true;
+  }
+
+  throw new Error(
+    backendUpdateMessage(compatibility, normalizedAction)
+  );
+}
+
+function isUnknownActionError(error) {
+  const message = String(error?.message || error || "").toLowerCase();
+
+  return (
+    message.includes("action tidak dikenali") ||
+    message.includes("tidak dikenali oleh api") ||
+    message.includes("unknown action")
+  );
+}
+
 async function gasRequestWithRetry(action, parameters = {}, maxAttempts = 3) {
+  await ensureBackendAction(action);
+
   let lastError;
+
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const startedAt = performance.now();
+
     try {
       const result = await gasRequest(action, parameters);
+
+      if (
+        result?.success === false &&
+        isUnknownActionError(result?.message)
+      ) {
+        state.backendCompatibility = analyzeBackendCapabilities(result);
+        renderBackendCompatibility();
+
+        throw new Error(
+          backendUpdateMessage(state.backendCompatibility, action)
+        );
+      }
+
       recordRequestMetric(performance.now() - startedAt, true);
       return result;
     } catch (error) {
       lastError = error;
       recordRequestMetric(performance.now() - startedAt, false);
-      if (attempt < maxAttempts) await delay(700 * (2 ** (attempt - 1)));
+
+      if (
+        isUnknownActionError(error) ||
+        String(error?.message || "").includes("Google Apps Script API v")
+      ) {
+        break;
+      }
+
+      if (attempt < maxAttempts) {
+        await delay(700 * (2 ** (attempt - 1)));
+      }
     }
   }
+
   throw lastError;
 }
 
-function gasPostRequest(action, parameters = {}) {
+async function gasPostRequest(action, parameters = {}) {
+  await ensureBackendAction(action);
+
   if (!gasConfigured()) {
     return Promise.reject(new Error("URL Google Apps Script belum benar di config.js."));
   }
@@ -3862,12 +4127,32 @@ async function refreshDiagnostics() {
   await Promise.allSettled([refreshQuotaGuard(), updateRetryUi(), refreshPushStatus()]);
   $("#diagPerformanceMode").textContent = state.performanceMode.toUpperCase();
   try {
-    const response = await gasRequestWithRetry("capabilities", {}, 2);
-    state.backendCapabilities = response;
-    $("#diagApiVersion").textContent = response.apiVersion || "Unknown";
-    $("#diagActions").textContent = Array.isArray(response.actions) ? response.actions.join(", ") : "—";
+    const compatibility = await refreshBackendCompatibility({
+      force: true,
+      silent: true
+    });
+
+    const response = state.backendCapabilities;
+
+    $("#diagApiVersion").textContent =
+      compatibility.apiVersion || "Unknown";
+
+    $("#diagBackendCompatibility").textContent =
+      compatibility.compatible ? "COMPATIBLE" : "UPDATE REQUIRED";
+
+    $("#diagMissingActions").textContent =
+      compatibility.missing.length
+        ? compatibility.missing.join(", ")
+        : "None";
+
+    $("#diagActions").textContent =
+      Array.isArray(response?.actions)
+        ? response.actions.join(", ")
+        : "—";
   } catch (error) {
     $("#diagApiVersion").textContent = "Offline";
+    $("#diagBackendCompatibility").textContent = "UNAVAILABLE";
+    $("#diagMissingActions").textContent = "Unknown";
     $("#diagActions").textContent = error?.message || "Unavailable";
   }
 }
@@ -4734,7 +5019,19 @@ async function loadHistory() {
   }
 }
 
-function openHistory() { closeSidebar(); setReliabilityOverlay("#historyOverlay", true); loadHistory(); }
+async function openHistory() {
+  closeSidebar();
+  setReliabilityOverlay("#historyOverlay", true);
+
+  try {
+    await ensureBackendAction("history");
+    loadHistory();
+  } catch (error) {
+    $("#historyStatus").className = "reliability-status error";
+    $("#historyStatus").textContent =
+      error?.message || "History requires a backend update.";
+  }
+}
 function closeHistory() { setReliabilityOverlay("#historyOverlay", false); }
 
 function renderTokenHealth() {
@@ -4744,6 +5041,15 @@ function renderTokenHealth() {
 }
 
 async function runTokenHealth() {
+  try {
+    await ensureBackendAction("tokenhealth");
+  } catch (error) {
+    $("#tokenHealthStatus").className = "reliability-status error";
+    $("#tokenHealthStatus").textContent =
+      error?.message || "Token Health requires a backend update.";
+    return;
+  }
+
   $("#tokenHealthStatus").textContent = "Validating OAuth and Player Binding...";
   $("#runTokenHealth").disabled = true;
   try {
@@ -4901,6 +5207,13 @@ function bindAccountManagerAndDiagnostics() {
   $("#diagnosticsRefresh").addEventListener("click", refreshDiagnostics);
   $("#installPwaButton").addEventListener("click", installPwa);
   $("#clearAppCacheButton").addEventListener("click", clearAppCache);
+  $("#recheckBackendButton").addEventListener(
+    "click",
+    () => refreshBackendCompatibility({
+      force: true,
+      silent: false
+    })
+  );
   $("#syncSelectedButton").addEventListener("click", syncSelectedAccount);
   $("#bottomDashboard").addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
   $("#bottomAccounts").addEventListener("click", () => openAccountManager());
@@ -5117,6 +5430,11 @@ async function initialize() {
       });
 
       await processQueuedOperations();
+
+      await refreshBackendCompatibility({
+        force: true,
+        silent: true
+      });
 
       updateBootSequence(
         94,

@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "endfield-protocol-v31-1";
+const CACHE_NAME = "endfield-protocol-v31-2";
 const OFFLINE_URL = "./offline.html";
 
 const STATIC_SHELL = [

@@ -7122,3 +7122,101 @@ body.performance-battery .background-media::after { display:none; }
   .reliability-toolbar { align-items:stretch; flex-direction:column; }
   .history-chart { min-height:210px; }
 }
+
+
+.backend-compatibility-banner {
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  border: 1px solid rgba(255, 177, 79, 0.48);
+  border-radius: 13px;
+  background: linear-gradient(120deg, rgba(255, 177, 79, 0.11), rgba(10, 14, 20, 0.96));
+  color: #ffc877;
+}
+
+.backend-compatibility-banner.is-error {
+  border-color: rgba(255, 52, 77, 0.5);
+  background: linear-gradient(120deg, rgba(255, 52, 77, 0.11), rgba(10, 14, 20, 0.96));
+  color: #ff7788;
+}
+
+.backend-compatibility-banner.is-ready {
+  border-color: rgba(82, 228, 155, 0.44);
+  background: linear-gradient(120deg, rgba(82, 228, 155, 0.08), rgba(10, 14, 20, 0.96));
+  color: #92ffc4;
+}
+
+.backend-compatibility-banner .nexus-icon {
+  width: 21px;
+  height: 21px;
+}
+
+.backend-compatibility-banner strong,
+.backend-compatibility-banner span {
+  display: block;
+}
+
+.backend-compatibility-banner strong {
+  color: currentColor;
+  font-size: 9px;
+}
+
+.backend-compatibility-banner span {
+  margin-top: 4px;
+  color: #9ba5b1;
+  font-size: 7px;
+  line-height: 1.55;
+}
+
+.backend-compatibility-banner button {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid currentColor;
+  border-radius: 9px;
+  background: transparent;
+  color: currentColor;
+  font-family: inherit;
+  font-size: 7px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.feature-backend-status {
+  margin: 0 12px 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 52, 77, 0.42);
+  border-radius: 10px;
+  background: rgba(255, 52, 77, 0.07);
+  color: #ff7c8c;
+  font-size: 8px;
+  line-height: 1.55;
+}
+
+.nav-button.backend-unsupported {
+  opacity: 0.58;
+}
+
+.nav-button.backend-unsupported::after {
+  content: "UPDATE";
+  margin-left: auto;
+  padding: 3px 5px;
+  border: 1px solid rgba(255, 177, 79, 0.38);
+  border-radius: 999px;
+  color: #ffc877;
+  font-size: 5px;
+  letter-spacing: 0.55px;
+}
+
+@media (max-width: 680px) {
+  .backend-compatibility-banner {
+    grid-template-columns: 22px minmax(0, 1fr);
+  }
+
+  .backend-compatibility-banner button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}
