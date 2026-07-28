@@ -931,6 +931,20 @@
       </div>
       <div id="historyBackendStatus" class="feature-backend-status" hidden></div>
       <div id="historyStatus" class="reliability-status">Waiting for history data.</div>
+      <div class="history-summary-grid">
+        <section class="history-summary-card">
+          <header><span>Energy</span><strong id="historySummaryEnergy">—</strong></header>
+          <small id="historySummaryEnergyDetail">Latest reading</small>
+        </section>
+        <section class="history-summary-card">
+          <header><span>Check-ins</span><strong id="historySummaryCheckin">—</strong></header>
+          <small id="historySummaryCheckinDetail">Success / total</small>
+        </section>
+        <section class="history-summary-card">
+          <header><span>API Uptime</span><strong id="historySummaryUptime">—</strong></header>
+          <small id="historySummaryUptimeDetail">Success rate</small>
+        </section>
+      </div>
       <div class="history-grid">
         <article class="history-card history-card-wide">
           <header><span>24H ENERGY TREND</span><strong id="historySanitySummary">—</strong></header>
@@ -940,9 +954,9 @@
           <header><span>30D CHECK-IN</span><strong id="historyCheckinSummary">—</strong></header>
           <div id="historyCheckinList" class="history-event-list"></div>
         </article>
-        <article class="history-card">
+        <article class="history-card uptime-card">
           <header><span>API UPTIME</span><strong id="historyUptimeSummary">—</strong></header>
-          <div id="historyUptimeBars" class="uptime-bars"></div>
+          <div id="historyUptimeChart" class="uptime-ring"></div>
         </article>
       </div>
     </section>

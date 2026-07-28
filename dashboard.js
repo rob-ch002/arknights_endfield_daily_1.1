@@ -4994,11 +4994,28 @@ function renderHistory() {
   $("#historySanitySummary").textContent = latest ? `${latest.current}/${latest.max}` : "No data";
   const checkins = (data.checkins || []).filter(item => !item.slug || item.slug === slug).slice(-30).reverse();
   $("#historyCheckinSummary").textContent = `${checkins.filter(item => item.success).length}/${checkins.length || 0} success`;
-  $("#historyCheckinList").innerHTML = checkins.length ? checkins.map(item => `<div class="history-event${item.success ? "" : " failed"}"><span class="history-event-dot"></span><div><strong>${escapeHtml(item.message || (item.success ? "Success" : "Failed"))}</strong><small>${escapeHtml(formatDateWib(item.at, true))}</small></div><small>${item.success ? "OK" : "FAIL"}</small></div>`).join("") : '<div class="history-event"><div><strong>No check-in history</strong></div></div>';
+  $("#historyCheckinList").innerHTML = checkins.length ? checkins.map(item => {
+    const content = escapeHtml(item.message || (item.success ? "Success" : "Failed"))
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    return `<div class="history-event${item.success ? "" : " failed"}"><span class="history-event-dot"></span><div class="history-event-body"><span>${content}</span><small>${escapeHtml(formatDateWib(item.at, true))}</small></div><small>${item.success ? "OK" : "FAIL"}</small></div>`;
+  }).join("") : '<div class="history-event"><div><strong>No check-in history</strong></div></div>';
   const uptime = (data.uptime || []).slice(-48);
   const successRate = uptime.length ? Math.round(uptime.filter(item => item.ok).length / uptime.length * 100) : 0;
   $("#historyUptimeSummary").textContent = uptime.length ? `${successRate}%` : "No data";
-  $("#historyUptimeBars").innerHTML = uptime.map(item => `<span class="uptime-bar${item.ok ? "" : " failed"}" style="height:${item.ok ? 92 : 28}%" title="${escapeHtml(formatDateWib(item.at, true))}"></span>`).join("");
+  $("#historySummaryUptime").textContent = uptime.length ? `${successRate}%` : "No data";
+  $("#historySummaryUptimeDetail").textContent = uptime.length ? `${uptime.length} checks` : "No data";
+  const progressPath = uptime.length ? Math.round(157 - (157 * successRate / 100)) : 157;
+  $("#historyUptimeChart").innerHTML = uptime.length ? `
+    <svg viewBox="0 0 120 70" role="img" aria-label="API Uptime semi-circle chart">
+      <path class="uptime-ring-track" d="M 10 60 A 50 50 0 0 1 110 60"></path>
+      <path class="uptime-ring-progress" d="M 10 60 A 50 50 0 0 1 110 60" style="stroke-dasharray:157;stroke-dashoffset:${progressPath};"></path>
+    </svg>
+    <div class="uptime-ring-label"><strong>${successRate}%</strong><span>${uptime.length} checks</span></div>
+  ` : `<div class="uptime-ring-label"><strong>No data</strong></div>`;
+  $("#historySummaryCheckin").textContent = `${checkins.filter(item => item.success).length}/${checkins.length || 0}`;
+  $("#historySummaryCheckinDetail").textContent = `${checkins.filter(item => item.success).length} successful`;
+  $("#historySummaryEnergy").textContent = latest ? `${latest.current}/${latest.max}` : "No data";
+  $("#historySummaryEnergyDetail").textContent = latest ? `Latest reading` : "No data";
 }
 
 async function loadHistory() {
