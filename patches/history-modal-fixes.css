@@ -1,0 +1,91 @@
+/* History modal / chart safety */
+.utility-overlay .utility-modal.reliability-modal.history-modal {
+  max-width: 1100px;
+  width: calc(100% - 48px);
+  height: calc(100vh - 96px);
+  margin: 0 auto;
+  overflow: hidden; /* internal panels handle scrolling */
+  display: flex;
+  flex-direction: column;
+}
+
+.history-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 18px;
+  align-items: start;
+  padding: 12px 12px 20px;
+}
+
+/* Wide chart column */
+.history-card-wide {
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
+  border-radius: 8px;
+}
+
+/* Chart wrapper: explicit height so Chart/SVG can fill */
+.history-chart,
+.chart-wrapper {
+  width: 100%;
+  height: 320px;         /* kontrol tinggi render */
+  max-height: 60vh;
+  min-height: 180px;
+  display: block;
+  position: relative;
+}
+
+/* Ensure SVG/canvas never overflow column width */
+.history-chart,
+.history-chart svg,
+.history-chart canvas,
+.chart-wrapper canvas {
+  max-width: 100%;
+  height: 100% !important;
+  display: block;
+}
+
+/* Right column panels scroll inside modal */
+.history-event-list,
+.uptime-bars,
+.token-health-list,
+.manager-account-list {
+  overflow-y: auto;
+  max-height: calc(100vh - 240px);
+  padding-right: 8px;
+  gap: 10px;
+}
+
+/* Uptime bars layout: wrap inside scroll container */
+.uptime-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Modern dark scrollbar */
+.history-event-list::-webkit-scrollbar,
+.uptime-bars::-webkit-scrollbar {
+  width: 10px;
+}
+.history-event-list::-webkit-scrollbar-track,
+.uptime-bars::-webkit-scrollbar-track {
+  background: transparent;
+}
+.history-event-list::-webkit-scrollbar-thumb,
+.uptime-bars::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg,#2dd4bf,#06b6d4);
+  border-radius: 8px;
+  border: 2px solid rgba(0,0,0,0.25);
+}
+
+/* Firefox */
+.history-event-list,
+.uptime-bars {
+  scrollbar-width: thin;
+  scrollbar-color: #06b6d4 transparent;
+}
